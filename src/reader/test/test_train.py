@@ -1,11 +1,12 @@
 from __future__ import annotations
-from train import main
 
 import os
 import sys
 from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
+
+from train import main
 
 # train.py가 있는 디렉토리 경로를 추가합니다.
 current_file_path = os.path.dirname(os.path.abspath(__file__))
