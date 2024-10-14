@@ -1,6 +1,4 @@
 from __future__ import annotations
-from arguments import ModelArguments
-from reader.model import Reader
 
 import os
 import sys
@@ -9,6 +7,8 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import torch
+from arguments import ModelArguments
+from reader.model import Reader
 
 current_file_path = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.abspath(os.path.join(current_file_path, '../../'))
