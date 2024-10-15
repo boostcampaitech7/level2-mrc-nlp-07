@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from arguments import DataTrainingArguments
 from arguments import ModelArguments
 from reader.data_handler import DataHandler

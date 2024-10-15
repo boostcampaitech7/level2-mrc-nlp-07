@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-
 class Evaluation:
     def compute_metrics(
         self,
