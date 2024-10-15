@@ -7,8 +7,8 @@ from unittest.mock import patch
 import torch
 
 sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
-from arguments import ModelArguments
 from reader.model import Reader
+from arguments import ModelArguments
 
 
 class TestReader(unittest.TestCase):
