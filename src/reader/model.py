@@ -1,31 +1,32 @@
-from __future__ import annotations
-
 import torch
 from arguments import ModelArguments
-from transformers import PretrainedConfig
-from transformers import PreTrainedModel
-from transformers import PreTrainedTokenizer
+from transformers import AutoConfig
+from transformers import AutoModelForQuestionAnswering
+from transformers import AutoTokenizer
 
 
 class Reader:
     # TODO: 리더 클래스 개발
     def __init__(self, model_args: ModelArguments) -> None:
-        self.model_name_or_path: str = model_args.model_name_or_path
-        self.model: PreTrainedModel | None = None
-        self.tokenizer: PreTrainedTokenizer | None = None
-        self.config: PretrainedConfig | None = None
+        self.config = AutoConfig.from_pretrained(
+            model_args.config_name
+            if model_args.config_name is not None
+            else model_args.model_name_or_path,
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_args.tokenizer_name
+            if model_args.tokenizer_name is not None
+            else model_args.model_name_or_path,
+            use_fast=True,
+        )
+        self.model = AutoModelForQuestionAnswering.from_pretrained(
+            model_args.model_name_or_path,
+            from_tf=bool('.ckpt' in model_args.model_name_or_path),
+            config=self.config,
+        )
         self.output: dict = {}
 
-    def load_model(self) -> None:
-        self.model = PreTrainedModel.from_pretrained(self.model_name_or_path)
-        self.config = PretrainedConfig.from_pretrained(self.model_name_or_path)
-
-    def load_tokenizer(self) -> None:
-        self.tokenizer = PreTrainedTokenizer.from_pretrained(
-            self.model_name_or_path,
-        )
-
-    def forward(
+    def train(
         self,
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
@@ -39,5 +40,5 @@ class Reader:
             )
         return self.output
 
-    def post_process(self, output: dict) -> dict:
+    def predict(self, output: dict) -> dict:
         return {'predictions': output}
