@@ -4,12 +4,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
 from train import main
-
-# train.py가 있는 디렉토리 경로를 추가합니다.
-current_file_path = os.path.dirname(os.path.abspath(__file__))
-train_dir = os.path.abspath(os.path.join(current_file_path, '../../'))
-sys.path.append(train_dir)
 
 
 class TestMainFunction(TestCase):

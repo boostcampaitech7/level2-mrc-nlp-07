@@ -1,7 +1,12 @@
+from __future__ import annotations
+
+import sys
+sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
+
 import unittest
 from unittest.mock import patch
 
-from ..monitoring_tool import MonitoringTool
+from reader.monitoring_tool import MonitoringTool
 
 
 class TestMonitoringTool(unittest.TestCase):

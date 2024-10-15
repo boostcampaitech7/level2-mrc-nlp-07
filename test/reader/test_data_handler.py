@@ -1,8 +1,11 @@
+from __future__ import annotations
+
+import sys
+sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
+
 import unittest
-
 from arguments import DataTrainingArguments
-
-from ..data_handler import DataHandler  # DataHandler 클래스를 포함한 모듈을 가져옵니다.
+from reader.data_handler import DataHandler
 
 
 class TestDataHandler(unittest.TestCase):

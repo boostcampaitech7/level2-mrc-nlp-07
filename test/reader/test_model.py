@@ -5,12 +5,10 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import torch
+
+sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
 from arguments import ModelArguments
 from reader.model import Reader
-
-current_file_path = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.abspath(os.path.join(current_file_path, '../../'))
-sys.path.append(src_dir)
 
 
 class TestReader(unittest.TestCase):

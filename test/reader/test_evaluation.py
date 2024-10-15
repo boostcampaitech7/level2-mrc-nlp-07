@@ -1,6 +1,10 @@
-import unittest
+from __future__ import annotations
 
-from ..evaluation import Evaluation
+import sys
+sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
+
+import unittest
+from reader.evaluation import Evaluation
 
 
 class TestEvaluation(unittest.TestCase):
