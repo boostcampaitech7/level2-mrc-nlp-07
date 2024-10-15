@@ -13,7 +13,6 @@ from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
-from utils_qa import check_no_error
 
 
 logger = logging.getLogger(__name__)
@@ -53,12 +52,14 @@ class Reader:
             use_fast=True,
         )
         self.pad_on_right = self.tokenizer.padding_side == 'right'
-        self.last_checkpoint, self.max_seq_length = check_no_error(
-            data_args=self.data_args,
-            training_args=self.training_args,
-            datasets=self.datasets,
-            tokenizer=self.tokenizer,
-        )
+        # TODO: check_no_error 함수 문제 해결
+        self.last_checkpoint, self.max_seq_length = None, None
+        # check_no_error(
+        #     data_args=self.data_args,
+        #     training_args=self.training_args,
+        #     datasets=self.datasets,
+        #     tokenizer=self.tokenizer,
+        # )
 
         self.model = AutoModelForQuestionAnswering.from_pretrained(
             self.model_args.model_name_or_path,
