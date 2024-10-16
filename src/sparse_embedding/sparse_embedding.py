@@ -1,11 +1,10 @@
 import math
 from collections import Counter
-from typing import List, Dict
+from typing import List
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-from scipy.sparse import csr_matrix #
-from rank_bm25 import BM25Okapi
-
+from scipy.sparse import csr_matrix #   
+import pickle
 
 class SparseEmbedding:
     def __init__(self, corpus: List[str], tokenizer=None, ngram_range=(1,2), max_features:int=50000, mode: str = 'tfidf'):
@@ -106,10 +105,40 @@ class SparseEmbedding:
         query_vector = [0] * len(self.vocab)
         for word in tokenized_query:
             if word in self.vocab:
-                idx = self.vocab[word]
+                idx = self.vocab[word] 
                 query_vector[idx] = 1
         return csr_matrix([query_vector])
     
     def transform_bm25(self, query: str) -> np.ndarray:
         return self.transform_our_tfidf(query)
     
+    def save(self, filename: str):
+        with open(filename, 'wb') as f:
+            pickle.dump({
+                'tokenizer': self.tokenizer,
+                'ngram_range': self.ngram_range,
+                'max_features': self.max_features,
+                'mode': self.mode,
+                'vocab': self.vocab,
+                'idf': getattr(self, 'idf', None),
+                'avgdl': getattr(self, 'avgdl', None),
+                'vectorizer': getattr(self, 'vectorizer', None)
+            }, f)
+            
+    @classmethod
+    def load(cls, filename: str):
+        with open(filename, 'rb') as f:
+            data = pickle.load(f)
+        
+        instance = cls(
+            tokenizer=data['tokenizer'],
+            ngram_range=data['ngram_range'],
+            max_features=data['max_features'],
+            mode=data['mode']
+        )
+        instance.vocab = data['vocab']
+        instance.idf = data['idf']
+        instance.avgdl = data['avgdl']
+        instance.vectorizer = data['vectorizer']
+        
+        return instance
