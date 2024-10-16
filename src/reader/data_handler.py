@@ -1,6 +1,7 @@
 from datasets import load_from_disk
-from reader.utils.arguments import DataTrainingArguments
 from transformers import AutoTokenizer
+
+from src.reader.utils.arguments import DataTrainingArguments
 from data_processor import DataProcessor
 
 class DataHandler():
