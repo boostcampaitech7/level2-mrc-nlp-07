@@ -5,9 +5,9 @@ import pytest
 from datasets import DatasetDict
 from transformers import TrainingArguments
 
-from ..reader.model import Reader
-from ..reader.utils.arguments import DataTrainingArguments
-from ..reader.utils.arguments import ModelArguments
+from src.reader.model import Reader
+from src.reader.utils.arguments import DataTrainingArguments
+from src.reader.utils.arguments import ModelArguments
 # Mock된 DataTrainingArguments와 ModelArguments
 
 
