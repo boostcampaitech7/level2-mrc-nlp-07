@@ -1,7 +1,10 @@
 import os
+from typing import Any
+from typing import Optional
 
 from data_processor import DataPostProcessor
 from data_processor import DataPreProcessor
+from datasets import Dataset
 from datasets import DatasetDict
 from evaluate import load
 from log.logger import setup_logger
@@ -67,97 +70,108 @@ class Reader:
             config=self.config,
         )
 
-    def train(self) -> None:
+    def preprocess_data(self, stage: str) -> Dataset:
+        if stage == 'train':
+            column_names = self.datasets['train'].column_names
+            dataset = self.datasets['train']
+        else:
+            column_names = self.datasets['validation'].column_names
+            dataset = self.datasets['validation']
+
+        processed_dataset: Dataset = dataset.map(
+            function=DataPreProcessor.process,
+            batched=True,
+            num_proc=self.data_args.preprocessing_num_workers,
+            remove_columns=column_names,
+            load_from_cache_file=not self.data_args.overwrite_cache,
+        )
+        return processed_dataset
+
+    def run(self) -> None:
+        """훈련과 예측을 하나의 함수로 처리"""
+        train_dataset: Optional[Dataset] = None
+        eval_dataset: Optional[Dataset] = None
+
         if self.training_args.do_train:
-            if 'train' not in self.datasets:
-                raise ValueError('--do_train requires a train dataset')
-            train_dataset = self.datasets['train']
-            train_dataset = train_dataset.map(
-                function=DataPreProcessor.process,
-                batched=True,
-                num_proc=self.data_args.preprocessing_num_workers,
-                remove_columns=self.column_names,
-                load_from_cache_file=not self.data_args.overwrite_cache,
-            )
+            train_dataset = self.preprocess_data('train')
+        if self.training_args.do_eval or self.training_args.do_predict:
+            eval_dataset = self.preprocess_data('eval')
 
-        if self.training_args.do_eval:
-            eval_dataset = self.datasets['validation']
-            eval_dataset = eval_dataset.map(
-                function=DataPreProcessor.process,
-                batched=True,
-                num_proc=self.data_args.preprocessing_num_workers,
-                remove_columns=self.column_names,
-                load_from_cache_file=not self.data_args.overwrite_cache,
-            )
+        self._run(train_dataset, eval_dataset)
 
-        data_collator = DataCollatorWithPadding(
+    def _run(self, train_dataset: Optional[Dataset], eval_dataset: Optional[Dataset]) -> None:
+        """훈련과 평가, 예측을 모두 포함한 함수"""
+        data_collator: DataCollatorWithPadding = DataCollatorWithPadding(
             tokenizer=self.tokenizer,
             pad_to_multiple_of=8 if self.training_args.fp16 else None,
         )
-
         metric = load('squad')
 
-        def compute_metrics(p): return metric.compute(
-            predictions=p.predictions,
-            references=p.label_ids,
-        )
+        def compute_metrics(p: Any) -> dict[str, Any]:
+            return metric.compute(predictions=p.predictions, references=p.label_ids)
 
-        trainer = QuestionAnsweringTrainer(
+        trainer: QuestionAnsweringTrainer = QuestionAnsweringTrainer(
             model=self.model,
             args=self.training_args,
             train_dataset=train_dataset if self.training_args.do_train else None,
             eval_dataset=eval_dataset if self.training_args.do_eval else None,
-            eval_examples=self.datasets['validation'] if self.training_args.do_eval else None,
             tokenizer=self.tokenizer,
             data_collator=data_collator,
             post_process_function=DataPostProcessor.process,
             compute_metrics=compute_metrics,
         )
 
-        # Training
         if self.training_args.do_train:
-            if self.last_checkpoint is not None:
-                checkpoint = self.last_checkpoint
-            elif os.path.isdir(self.model_args.model_name_or_path):
-                checkpoint = self.model_args.model_name_or_path
-            else:
-                checkpoint = None
-            train_result = trainer.train(resume_from_checkpoint=checkpoint)
-            trainer.save_model()  # Saves the tokenizer too for easy upload
-
-            metrics = train_result.metrics
-            metrics['train_samples'] = len(train_dataset)
-
-            trainer.log_metrics('train', metrics)
-            trainer.save_metrics('train', metrics)
-            trainer.save_state()
-
-            output_train_file = os.path.join(self.training_args.output_dir, 'train_results.txt')
-
-            with open(output_train_file, 'w') as writer:
-                self.logger.info('***** Train results *****')
-                for key, value in sorted(train_result.metrics.items()):
-                    self.logger.info(f'  {key} = {value}')
-                    writer.write(f'{key} = {value}\n')
-
-            # State 저장
-            trainer.state.save_to_json(
-                os.path.join(self.training_args.output_dir, 'trainer_state.json'),
-            )
-
-        # Evaluation
+            self._run_training(trainer, train_dataset)
         if self.training_args.do_eval:
-            self.logger.info('*** Evaluate ***')
-            metrics = trainer.evaluate()
+            self._run_evaluation(trainer, eval_dataset)
+        if self.training_args.do_predict:
+            self._run_prediction(trainer, eval_dataset)
 
-            metrics['eval_samples'] = len(eval_dataset)
+    def _run_training(self, trainer: QuestionAnsweringTrainer, train_dataset: Dataset) -> None:
+        """훈련 수행"""
+        checkpoint: Optional[str]
+        if self.last_checkpoint:
+            checkpoint = self.last_checkpoint
+        else:
+            checkpoint = None
 
-            trainer.log_metrics('eval', metrics)
-            trainer.save_metrics('eval', metrics)
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        self._save_results(trainer, train_result, train_dataset, 'train')
 
-    def predict(self, output: dict) -> dict:
-        return {'predictions': output}
+    def _run_evaluation(self, trainer: QuestionAnsweringTrainer, eval_dataset: Dataset) -> None:
+        """평가 수행"""
+        self.logger.info('*** Evaluate ***')
+        metrics = trainer.evaluate()
+        metrics['eval_samples'] = len(eval_dataset)
+        trainer.log_metrics('eval', metrics)
+        trainer.save_metrics('eval', metrics)
 
-    def run(self) -> dict | None:
-        # TODO: 베이스라인 코드에서 train.py와 inference.py가 유사하므로 하나의 메소드로 모듈화
-        pass
+    def _run_prediction(self, trainer: QuestionAnsweringTrainer, eval_dataset: Dataset) -> None:
+        """예측 수행"""
+        predictions = trainer.predict(eval_dataset)
+        self._save_predictions(predictions)
+
+    def _save_results(self, trainer: QuestionAnsweringTrainer, result: Any, dataset: Dataset, stage: str) -> None:
+        """결과 저장"""
+        trainer.save_model()
+        metrics: dict[str, Any] = result.metrics
+        metrics[f'{stage}_samples'] = len(dataset)
+
+        trainer.log_metrics(stage, metrics)
+        trainer.save_metrics(stage, metrics)
+        trainer.save_state()
+
+        output_file: str = os.path.join(self.training_args.output_dir, f'{stage}_results.txt')
+        with open(output_file, 'w') as writer:
+            self.logger.info(f'***** {stage.capitalize()} results *****')
+            for key, value in sorted(metrics.items()):
+                self.logger.info(f'{key} = {value}')
+                writer.write(f'{key} = {value}\n')
+
+    def _save_predictions(self, predictions: Any) -> None:
+        """예측 결과 저장"""
+        output_file = os.path.join(self.training_args.output_dir, 'predictions.json')
+        with open(output_file, 'w') as writer:
+            writer.write(predictions)
+        self.logger.info(f'Predictions saved to {output_file}')
