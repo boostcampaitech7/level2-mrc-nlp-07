@@ -1,7 +1,7 @@
-from arguments import DataTrainingArguments
-from arguments import ModelArguments
 from reader.model import Reader
 from reader.monitoring_tool import MonitoringTool
+from reader.utils.arguments import DataTrainingArguments
+from reader.utils.arguments import ModelArguments
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
 

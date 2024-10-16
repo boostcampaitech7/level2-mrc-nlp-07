@@ -1,21 +1,20 @@
-import logging
 import os
 
-from arguments import DataTrainingArguments
-from arguments import ModelArguments
 from data_processor import DataPostProcessor
 from data_processor import DataPreProcessor
 from datasets import DatasetDict
 from evaluate import load
+from log.logger import setup_logger
+from reader.utils.arguments import DataTrainingArguments
+from reader.utils.arguments import ModelArguments
 from trainer_qa import QuestionAnsweringTrainer
 from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
-
-
-logger = logging.getLogger(__name__)
+from utils.seed import set_seed
+from utils.tokenizer_checker import check_no_error
 
 
 class Reader:
@@ -27,6 +26,9 @@ class Reader:
         training_args: TrainingArguments,
         datasets: DatasetDict,
     ) -> None:
+        self.logger = setup_logger(__name__)
+        set_seed()
+
         self.model_args = model_args
         self.data_args = data_args
         self.training_args = training_args
@@ -52,14 +54,12 @@ class Reader:
             use_fast=True,
         )
         self.pad_on_right = self.tokenizer.padding_side == 'right'
-        # TODO: check_no_error 함수 문제 해결
-        self.last_checkpoint, self.max_seq_length = None, None
-        # check_no_error(
-        #     data_args=self.data_args,
-        #     training_args=self.training_args,
-        #     datasets=self.datasets,
-        #     tokenizer=self.tokenizer,
-        # )
+        self.last_checkpoint, self.max_seq_length = check_no_error(
+            data_args=self.data_args,
+            training_args=self.training_args,
+            datasets=self.datasets,
+            tokenizer=self.tokenizer,
+        )
 
         self.model = AutoModelForQuestionAnswering.from_pretrained(
             self.model_args.model_name_or_path,
@@ -135,9 +135,9 @@ class Reader:
             output_train_file = os.path.join(self.training_args.output_dir, 'train_results.txt')
 
             with open(output_train_file, 'w') as writer:
-                logger.info('***** Train results *****')
+                self.logger.info('***** Train results *****')
                 for key, value in sorted(train_result.metrics.items()):
-                    logger.info(f'  {key} = {value}')
+                    self.logger.info(f'  {key} = {value}')
                     writer.write(f'{key} = {value}\n')
 
             # State 저장
@@ -147,7 +147,7 @@ class Reader:
 
         # Evaluation
         if self.training_args.do_eval:
-            logger.info('*** Evaluate ***')
+            self.logger.info('*** Evaluate ***')
             metrics = trainer.evaluate()
 
             metrics['eval_samples'] = len(eval_dataset)
@@ -157,3 +157,7 @@ class Reader:
 
     def predict(self, output: dict) -> dict:
         return {'predictions': output}
+
+    def run(self) -> dict | None:
+        # TODO: 베이스라인 코드에서 train.py와 inference.py가 유사하므로 하나의 메소드로 모듈화
+        pass
