@@ -4,16 +4,17 @@ from unittest.mock import patch
 import pytest
 from datasets import Dataset
 from datasets import DatasetDict
-from reader.data_handler import DataPostProcessor
-from reader.data_handler import DataPreProcessor
-from reader.utils.arguments import DataTrainingArguments
 from transformers import AutoTokenizer
+
+from ..reader.data_handler import DataPostProcessor
+from ..reader.data_handler import DataPreProcessor
+from ..reader.utils.arguments import DataTrainingArguments
 
 
 @pytest.fixture
 def mock_data_args():
     return DataTrainingArguments(
-        dataset_name='../../data/train_dataset',
+        dataset_name='valid_dataset_path',
         max_seq_length=384,
         pad_to_max_length=False,
         preprocessing_num_workers=1,
