@@ -1,5 +1,5 @@
-from arguments import DataTrainingArguments
 from datasets import load_from_disk
+from reader.utils.arguments import DataTrainingArguments
 from transformers import AutoTokenizer
 
 

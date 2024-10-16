@@ -1,14 +1,13 @@
-import os
 import sys
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import torch
+from reader.model import Reader
+from reader.utils.arguments import ModelArguments
 
 sys.path.append('/data/ephemeral/home/level2-mrc-nlp-07/src')
-from reader.model import Reader
-from arguments import ModelArguments
 
 
 class TestReader(unittest.TestCase):
