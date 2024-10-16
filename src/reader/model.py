@@ -157,3 +157,7 @@ class Reader:
 
     def predict(self, output: dict) -> dict:
         return {'predictions': output}
+
+    def run(self) -> dict | None:
+        # TODO: 베이스라인 코드에서 train.py와 inference.py가 유사하므로 하나의 메소드로 모듈화
+        pass
