@@ -9,7 +9,7 @@ from datasets import Dataset
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tqdm.auto import tqdm
 from scipy.sparse import save_npz, load_npz, vstack
-from utils.timer import timer
+from src.utils.timer import timer
 from src.sparse_embedding.sparse_embedding import SparseEmbedding
 
 class SparseRetrieval:
@@ -76,15 +76,26 @@ class SparseRetrieval:
         self.mode = mode
         
         pickle_name = f"{mode}_embedding.npz"
+        sparse_name = f"{mode}_vector.bin"
         emd_path = os.path.join(self.data_path, pickle_name)
+        sparse_path = os.path.join(self.data_path, sparse_name)
         print(f"Building {mode} embedding...")
         # SparseEmbedding 객체 생성 (모드를 지정하여 필요한 임베딩만 계산)
         self.sparse_embed = SparseEmbedding(
             corpus = self.contexts, 
             tokenizer = self.tokenize_fn, 
             mode = mode)
-        self.p_embedding = self.sparse_embed.get_embedding()  # 빈 쿼리로 전체 문서 임베딩 얻기
-        save_npz(emd_path, self.p_embedding)
+        
+        # 시간이 오래걸려서 저장 여부 선택.
+        if os.path.isfile(emd_path) and os.path.isfile(sparse_path):
+            with open(sparse_path, "rb") as file:
+                self.tfidfv = pickle.load(file)
+            self.sparse_embed.load(sparse_path)
+        else:
+            self.p_embedding = self.sparse_embed.get_embedding() 
+            save_npz(emd_path, self.p_embedding)
+            self.sparse_embed.save(sparse_path)
+
         
         print("Embedding Finished")
         print(f"{mode} embedding shape:", self.p_embedding.shape)
