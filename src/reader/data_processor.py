@@ -1,19 +1,20 @@
 from abc import ABC
 from abc import abstractmethod
 
-from transformers import BatchEncoding
+#TODO: DataProcessor에 BatchEncoding 형식 적용
+#from transformers import BatchEncoding
 
 
 class DataProcessor(ABC):
     @classmethod
     @abstractmethod
-    def process(cls, examples: BatchEncoding) -> BatchEncoding:
+    def process(cls, examples):
         pass
 
 
 class DataPreProcessor(DataProcessor):
     @classmethod
-    def process(cls, examples: BatchEncoding) -> BatchEncoding:
+    def process(cls, examples):
         """적절한 docstring 부탁드립니다.
 
         Args:
@@ -23,12 +24,13 @@ class DataPreProcessor(DataProcessor):
             BatchEncoding: _description_
         """
         print('Pre-processing...')
+        
         return examples
 
 
 class DataPostProcessor(DataProcessor):
     @classmethod
-    def process(cls, examples: BatchEncoding) -> BatchEncoding:
+    def process(cls, examples):
         """적절한 docstring 부탁드립니다.
 
         Args:
@@ -41,7 +43,7 @@ class DataPostProcessor(DataProcessor):
         return examples
 
 
-if __name__ == '__main__':
+'''if __name__ == '__main__':
     data = BatchEncoding(
         {
             'input_ids': [101, 102, 103],
@@ -54,3 +56,4 @@ if __name__ == '__main__':
 
     postprocessed_data = DataPostProcessor.process(data)
     print(postprocessed_data)
+'''
