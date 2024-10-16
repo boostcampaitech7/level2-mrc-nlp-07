@@ -2,22 +2,23 @@ import os
 from typing import Any
 from typing import Optional
 
-from data_processor import DataPostProcessor
-from data_processor import DataPreProcessor
 from datasets import Dataset
 from datasets import DatasetDict
 from evaluate import load
-from log.logger import setup_logger
-from reader.utils.arguments import DataTrainingArguments
-from reader.utils.arguments import ModelArguments
-from trainer_qa import QuestionAnsweringTrainer
 from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
-from utils.seed import set_seed
-from utils.tokenizer_checker import check_no_error
+
+from src.reader.data_processor import DataPostProcessor
+from src.reader.data_processor import DataPreProcessor
+from src.reader.log.logger import setup_logger
+from src.reader.trainer_qa import QuestionAnsweringTrainer
+from src.reader.utils.arguments import DataTrainingArguments
+from src.reader.utils.arguments import ModelArguments
+from src.reader.utils.seed import set_seed
+from src.reader.utils.tokenizer_checker import check_no_error
 
 
 class Reader:
@@ -39,8 +40,10 @@ class Reader:
 
         if self.training_args.do_train:
             self.column_names = self.datasets['train'].column_names
-        else:
+        if self.training_args.do_eval:
             self.column_names = self.datasets['validation'].column_names
+        if self.training_args.do_predict:
+            self.column_names = self.datasets['test'].column_names
 
         self.output: dict = {}
 
@@ -70,13 +73,16 @@ class Reader:
             config=self.config,
         )
 
-    def preprocess_data(self, stage: str) -> Dataset:
-        if stage == 'train':
+    def preprocess_data(self) -> Dataset:
+        if self.training_args.do_train:
             column_names = self.datasets['train'].column_names
             dataset = self.datasets['train']
-        else:
+        if self.training_args.do_eval:
             column_names = self.datasets['validation'].column_names
             dataset = self.datasets['validation']
+        if self.training_args.do_predict:
+            column_names = self.datasets['test'].column_names
+            dataset = self.datasets['test']
 
         processed_dataset: Dataset = dataset.map(
             function=DataPreProcessor.process,
@@ -91,15 +97,23 @@ class Reader:
         """훈련과 예측을 하나의 함수로 처리"""
         train_dataset: Optional[Dataset] = None
         eval_dataset: Optional[Dataset] = None
+        test_dataset: Optional[Dataset] = None
 
         if self.training_args.do_train:
-            train_dataset = self.preprocess_data('train')
-        if self.training_args.do_eval or self.training_args.do_predict:
-            eval_dataset = self.preprocess_data('eval')
+            train_dataset = self.preprocess_data()
+        if self.training_args.do_eval:
+            eval_dataset = self.preprocess_data()
+        if self.training_args.do_predict:
+            test_dataset = self.preprocess_data()
 
-        self._run(train_dataset, eval_dataset)
+        self._run(train_dataset, eval_dataset, test_dataset)
 
-    def _run(self, train_dataset: Optional[Dataset], eval_dataset: Optional[Dataset]) -> None:
+    def _run(
+        self,
+        train_dataset: Optional[Dataset],
+        eval_dataset: Optional[Dataset],
+        test_dataset: Optional[Dataset],
+    ) -> None:
         """훈련과 평가, 예측을 모두 포함한 함수"""
         data_collator: DataCollatorWithPadding = DataCollatorWithPadding(
             tokenizer=self.tokenizer,
@@ -126,7 +140,7 @@ class Reader:
         if self.training_args.do_eval:
             self._run_evaluation(trainer, eval_dataset)
         if self.training_args.do_predict:
-            self._run_prediction(trainer, eval_dataset)
+            self._run_prediction(trainer, test_dataset)
 
     def _run_training(self, trainer: QuestionAnsweringTrainer, train_dataset: Dataset) -> None:
         """훈련 수행"""
@@ -147,9 +161,10 @@ class Reader:
         trainer.log_metrics('eval', metrics)
         trainer.save_metrics('eval', metrics)
 
-    def _run_prediction(self, trainer: QuestionAnsweringTrainer, eval_dataset: Dataset) -> None:
+    def _run_prediction(self, trainer: QuestionAnsweringTrainer, test_dataset: Dataset) -> None:
         """예측 수행"""
-        predictions = trainer.predict(eval_dataset)
+        # TODO: 베이스라인 코드 중 utils_qa.py에 postprocess_qa_predictions 뜯어보고 inference.py 재 적용
+        predictions = trainer.predict(test_dataset, test_dataset)
         self._save_predictions(predictions)
 
     def _save_results(self, trainer: QuestionAnsweringTrainer, result: Any, dataset: Dataset, stage: str) -> None:

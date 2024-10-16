@@ -2,13 +2,13 @@ import os
 from typing import Any
 from typing import Optional
 
-from arguments import DataTrainingArguments
 from datasets import DatasetDict
 from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
-from ..log.logger import setup_logger
+from src.reader.log.logger import setup_logger
+from src.reader.utils.arguments import DataTrainingArguments
 
 
 def check_no_error(

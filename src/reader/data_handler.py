@@ -2,8 +2,9 @@ from abc import ABC
 from abc import abstractmethod
 
 from datasets import load_from_disk
-from reader.utils.arguments import DataTrainingArguments
 from transformers import AutoTokenizer
+
+from src.reader.utils.arguments import DataTrainingArguments
 
 
 class DataHandler(ABC):
