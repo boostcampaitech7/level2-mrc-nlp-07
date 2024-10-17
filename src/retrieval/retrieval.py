@@ -4,7 +4,6 @@ from typing import List, NoReturn, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from datasets import Dataset
-from sklearn.feature_extraction.text import TfidfVectorizer
 from tqdm.auto import tqdm
 from scipy.sparse import save_npz, load_npz, vstack
 from src.utils.timer import timer
@@ -24,19 +23,26 @@ class SparseRetrieval:
         """
         Arguments:
             tokenize_fn:
-                기본 text를 tokenize해주는 함수입니다.
-                아래와 같은 함수들을 사용할 수 있습니다.
+                기본 text를 tokenize해주는 함수
+                아래와 같은 함수들을 사용할 수 있음.
                 - lambda x: x.split(' ')
                 - Huggingface Tokenizer
                 - konlpy.tag의 Mecab
 
             data_path:
-                데이터가 보관되어 있는 경로입니다.
+                데이터가 보관되어 있는 경로
 
             context_path:
-                Passage들이 묶여있는 파일명입니다.
-
-            data_path/context_path가 존재해야합니다.
+                Passage들이 묶여있는 파일명
+                
+            load_from_file:
+                사전에 미리 학습된 파일들을 들고 오는지에 대한 여부를 알려주는 변수로, bool값
+            
+            mode:
+                'tfidf' : sklearn의 tfidf 모드.
+                'my_tfidf' : 직접 구현한 tfidf 모드.
+                'bm25' : 직접 구현한 bm25 모드.
+            
 
         Summary:
             Passage 파일을 불러오고 TfidfVectorizer를 선언하는 기능을 합니다.
@@ -90,6 +96,7 @@ class SparseRetrieval:
         self.sparse_embed = SparseEmbedding(
             docs=self.docs,
             tokenizer=self.tokenize_fn,
+            mode= self.mode
         )
         self.p_embedding = self.sparse_embed.get_embedding()
         save_npz(self.emd_path, self.p_embedding)
@@ -198,7 +205,7 @@ class SparseRetrieval:
         doc_indices = sorted_result.tolist()[:k] # 상위 k에 대한 인덱스 슬라이싱
         return doc_score, doc_indices 
 
-    def get_relevant_doc_bulk(self, queries: List, k: Optional[int] = 1) -> Tuple[List, List]:
+    def get_relevant_doc_bulk(self, queries: List, k: Optional[int] = 5) -> Tuple[List, List]:
         """
         Arguments:
             queries (List):
@@ -213,21 +220,15 @@ class SparseRetrieval:
 
         # Query vector 계산
         stage1 = [self.sparse_embed.transform(query) for query in queries]
-        print('전')
-        print(type(stage1), stage1.shape)
         query_vecs = vstack(stage1) # 질문수, 임베딩 차원
-        print('후')
-        print(query_vecs.shape, type(query_vecs))
         assert (
             np.sum(query_vecs) != 0
         ), "query_vecs가 제대로 변환되지않음."
 
-        print('유사도 계산')
         print(query_vecs.shape, self.p_embedding.shape)
         # 유사도 계산
         result = query_vecs @ self.p_embedding.T  # 행렬 곱 연산 (질문수, 임베딩 차원) x (임베딩 차원, 문서수)
         # 질문수, 문서 수 -> 점수높은순으로 top-k
-        print('유사도 후')
         print(f'result shape : {result.shape}')
 
         if not isinstance(result, np.ndarray):
