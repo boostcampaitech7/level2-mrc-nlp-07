@@ -11,7 +11,7 @@ def calculate_reverse_ranking_score(df):
 
 def calculate_linear_score(df):
     candidate = len(df["retrieval_context"])
-    if check_original_in_context:
+    if check_original_in_context(df):
         rank = df["retrieval_context"].index(df["original_context"]) 
         score = (candidate - rank) / candidate  # linear score
     else: # 정답이 후보에 없을 경우
