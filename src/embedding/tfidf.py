@@ -1,16 +1,24 @@
 import math
 from collections import Counter
-from scipy.sparse import csr_matrix #   
+from scipy.sparse import csr_matrix
+
 
 class Tfidf:
-    def __init__(self, vocab, doc_freqs, docs, tokenizer, ngram_range, max_features):
+    def __init__(self, vocab, doc_freqs, tokenized_docs, ngram_range, max_features):
         self.vocab = vocab
-        self.doc_freqs  = doc_freqs
-        self.tokenizer = tokenizer
-        self.tokenized_docs = [tokenizer(doc) for doc in docs]
+        self.doc_freqs = doc_freqs
+        self.tokenized_docs = tokenized_docs
+        self.ngram_range = ngram_range
+        self.max_features = max_features
+        self.embedding_matrix = None
     
-    def embedding(self):
-        return self._compute_our_tfidf()
+    def fit(self):
+        self.embedding_matrix = self._fit_transform()
+    
+    def get_embedding(self):
+        if self.embedding_matrix is None:
+            self.fit()
+        return self.embedding_matrix
         
     def _fit_transform(self):
         num_docs = len(self.tokenized_docs)
@@ -25,10 +33,10 @@ class Tfidf:
                     doc_embed[idx] = (freq / len(doc)) * idf[word]
             embed.append(doc_embed)
         
-        return csr_matrix(embed) #
+        print('Finish TF-IDF Embedding')
+        return csr_matrix(embed)
     
-    def transform(self, query: str):
-        tokenized_query = self.tokenizer(query)
+    def transform(self, tokenized_query: str):
         query_vector = [0] * len(self.vocab)
         for word in tokenized_query:
             if word in self.vocab:

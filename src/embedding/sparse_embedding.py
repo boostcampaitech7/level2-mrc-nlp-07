@@ -4,51 +4,64 @@ import numpy as np
 import src.embedding as embedding_function
 import pickle
 
-
 class SparseEmbedding:
-    def __init__(self, docs: List[str], tokenizer=None, ngram_range=(1,2), max_features:int=50000, mode: str = 'tfidf'):
+    def __init__(self, docs: List[str], tokenizer=None, ngram_range:tuple=(1,2), max_features:int=50000, mode: str = 'tfidf'):
         self.docs = docs
         self.tokenizer = tokenizer if tokenizer else lambda x: x.split()
         self.ngram_range = ngram_range
         self.max_features = max_features
         self.mode = mode
-        self.tokenized_docs = [tokenizer(doc) for doc in docs]
         self.embedding_function = None
+        self.tokenized_docs = None
         
-    def get_embedding_function(self):
+        if docs is not None:
+            print('Start Initializing...')
+            self.tokenized_docs = [self.tokenizer(doc) for doc in docs]
+            self.initialize_embedding_function()
+        
+    def initialize_embedding_function(self):
+        print('Building Vocab')
+        vocab = self._build_vocab()
+        print('Calculate doc frequency')
+        doc_freqs = self._compute_doc_freqs()
         if self.mode == 'tfidf':
-            self.embedding_function =  embedding_function.SklearnTfidf(
-                tokenized_docs=self.docs,
+            self.embedding_function = embedding_function.SklearnTfidf(
+                docs=self.docs,
                 tokenizer=self.tokenizer,
                 ngram_range=self.ngram_range,
                 max_features=self.max_features
             )
             
+        elif self.mode == 'my_tfidf':
+            self.embedding_function = embedding_function.Tfidf(
+                vocab = vocab,
+                doc_freqs = doc_freqs,
+                tokenized_docs = self.tokenized_docs,
+                tokenizer = self.tokenizer,
+                ngram_range = self.ngram_range,
+                max_features = self.max_features
+            )
+            
+        elif self.mode == 'bm25':
+            self.embedding_function = embedding_function.Bm25(
+                vocab = vocab,
+                doc_freqs = doc_freqs,
+                tokenized_docs = self.tokenized_docs,
+                ngram_range = self.ngram_range,
+                max_features = self.max_features
+            )
         else:
-            vocab = self._build_vocab()
-            doc_freqs = self._compute_doc_freqs()
-            if self.mode == 'my_tfidf':
-                self.embedding_function = embedding_function.Tfidf(
-                    vocab=vocab,
-                    doc_freqs=doc_freqs,
-                    docs=self.docs,
-                    tokenizer=self.tokenizer,
-                    ngram_range=self.ngram_range,
-                    max_features=self.max_features
-                )
-                
-            elif self.mode == 'bm25':
-                self.embedding_function = embedding_function.Bm25(
-                    vocab=vocab,
-                    doc_freqs=doc_freqs,
-                    docs=self.docs,
-                    tokenizer=self.tokenizer,
-                    ngram_range=self.ngram_range,
-                    max_features=self.max_features
-                )
+            raise ValueError(f"Invalid mode: {self.mode}. Choose from 'tfidf', 'my_tfidf', 'bm25'")
         
-    def embedding(self):
-        return self.embedding_function.embedding
+        # Fit the embedding function if it has a fit method
+        print('End Initialization ')
+        if hasattr(self.embedding_function, 'fit'):
+            self.embedding_function.fit()
+    
+    def get_embedding(self):
+        if self.embedding_function is None:
+            raise ValueError("Embedding function has not been initialized. Call initialize_embedding_function first.")
+        return self.embedding_function.get_embedding()
     
     def transform(self, query: str) -> np.ndarray:
         tokenized_query = self.tokenizer(query)
@@ -72,30 +85,29 @@ class SparseEmbedding:
     def save(self, filename: str):
         with open(filename, 'wb') as f:
             pickle.dump({
+                'docs': self.docs,
                 'tokenizer': self.tokenizer,
                 'ngram_range': self.ngram_range,
                 'max_features': self.max_features,
                 'mode': self.mode,
-                'vocab': self.vocab,
-                'idf': getattr(self, 'idf', None),
-                'avgdl': getattr(self, 'avgdl', None),
-                'vectorizer': getattr(self, 'vectorizer', None)
+                'embedding_function': self.embedding_function
             }, f)
             
     @classmethod
     def load(cls, filename: str):
-        with open(filename, 'rb') as f:
-            data = pickle.load(f)
+        try:
+            with open(filename, 'rb') as f:
+                data = pickle.load(f)
+        except (EOFError, pickle.UnpicklingError) as e:
+            raise ValueError(f"Error loading SparseEmbedding from {filename}: {str(e)}")
+
+        instance = cls(docs=None)  # Create an empty instance
+        instance.__dict__.update(data)  # Update instance attributes with loaded data
         
-        instance = cls(
-            tokenizer=data['tokenizer'],
-            ngram_range=data['ngram_range'],
-            max_features=data['max_features'],
-            mode=data['mode']
-        )
-        instance.vocab = data['vocab']
-        instance.idf = data['idf']
-        instance.avgdl = data['avgdl']
-        instance.vectorizer = data['vectorizer']
-        
+        # Verify that essential attributes are present
+        essential_attrs = ['docs', 'tokenizer', 'ngram_range', 'max_features', 'mode', 'embedding_function']
+        for attr in essential_attrs:
+            if not hasattr(instance, attr):
+                raise ValueError(f"Loaded data is missing essential attribute: {attr}")
+
         return instance
