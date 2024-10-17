@@ -1,7 +1,7 @@
 def check_original_in_context(df):
     return df["original_context"] in df["retrieval_context"]
 
-def calculate_reverse_ranking_score(df):
+def calculate_reverse_rank_score(df):
     try:
         rank = df["retrieval_context"].index(df["original_context"]) + 1  # 1등부터 시작하는 등수로 변환
         score = 1 / rank  # RR score
