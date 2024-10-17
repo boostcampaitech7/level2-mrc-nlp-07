@@ -1,5 +1,4 @@
 from reader.model import Reader
-from reader.monitoring_tool import MonitoringTool
 from reader.utils.arguments import DataTrainingArguments
 from reader.utils.arguments import ModelArguments
 from transformers import HfArgumentParser
@@ -14,16 +13,7 @@ def main():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     reader_model = Reader(model_args, data_args, training_args)
-    reader_model.load()
-
-    # evaluation = Evaluation()
-    monitor_tool = MonitoringTool()
-
-    monitor_tool.start_monitoring()
-
-    reader_model.train()
-
-    monitor_tool.stop_monitoring()
+    reader_model.run()
 
 
 if __name__ == '__main__':
