@@ -16,11 +16,12 @@ class DataHandler():
         self.max_seq_length = min(
             data_args.max_seq_length, tokenizer.model_max_length,
         )
-        
-        self.processors = {'pre':preprocessor, 'pos':postprocessor} 
-        #TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
 
         self.datasets = load_from_disk(self.data_args.dataset_name)
+                
+        self.processors = {'pre':preprocessor, 'pos':postprocessor(data_args, self.datasets)} 
+        #TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
+
 
     def process_func(self, type: str) -> dict:
         """데이터를 처리하는 함수를 반환
