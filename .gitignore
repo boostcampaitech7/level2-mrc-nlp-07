@@ -4,3 +4,4 @@ data/
 mrc/
 .DS_Store
 code/
+.venv/
