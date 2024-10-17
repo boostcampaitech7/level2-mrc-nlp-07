@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from tqdm.auto import tqdm
 from scipy.sparse import save_npz, load_npz, vstack
 from src.utils.timer import timer
-from src.sparse_embedding.sparse_embedding import SparseEmbedding
+from src.embedding.sparse_embedding import SparseEmbedding
 
 class SparseRetrieval:
     def __init__(

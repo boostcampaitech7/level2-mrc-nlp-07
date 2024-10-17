@@ -43,7 +43,7 @@ class SparseEmbedding:
     def _fit_sklearn_tfidf(self):
         self.vectorizer = TfidfVectorizer(tokenizer=self.tokenizer, ngram_range=self.ngram_range, max_features=self.max_features)
         return self.vectorizer.fit_transform(self.corpus)
-  
+
     def _compute_our_tfidf(self):
         num_docs = len(self.tokenized_corpus)
         idf = {word: math.log(num_docs / (freq + 1)) + 1 for word, freq in self.doc_freqs.items()}
@@ -62,8 +62,7 @@ class SparseEmbedding:
     
     def _compute_bm25(self, k1=1.5, b=0.75):
         num_docs = len(self.tokenized_corpus)
-        idf = {word: math.log((num_docs - freq + 0.5) / (freq + 0.5) + 1) 
-               for word, freq in self.doc_freqs.items()}
+        idf = {word: math.log((num_docs - freq + 0.5) / (freq + 0.5) + 1) for word, freq in self.doc_freqs.items()}
         
         embed = []
         for doc in self.tokenized_corpus:
