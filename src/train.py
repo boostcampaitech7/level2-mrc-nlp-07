@@ -1,8 +1,9 @@
-from reader.model import Reader
-from reader.utils.arguments import DataTrainingArguments
-from reader.utils.arguments import ModelArguments
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
+
+from src.reader.model import Reader
+from src.reader.utils.arguments import DataTrainingArguments
+from src.reader.utils.arguments import ModelArguments
 
 
 def main():
