@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 #TODO: DataProcessor에 BatchEncoding 형식 적용
 #from transformers import BatchEncoding
-from src.reader.utils.utils_qa import check_no_error, postprocess_qa_predictions
+from src.reader.utils.postprocess_qa import postprocess_qa_predictions
 from transformers import EvalPrediction
 
 class DataProcessor(ABC):

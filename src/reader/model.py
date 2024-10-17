@@ -20,6 +20,8 @@ from src.reader.utils.arguments import ModelArguments
 from src.reader.utils.seed import set_seed
 from src.reader.utils.tokenizer_checker import check_no_error
 
+from data_handler import DataHandler
+
 
 class Reader:
     # TODO: 리더 클래스 개발, DataHandler 변경 사항에 맞게 개발
@@ -36,14 +38,6 @@ class Reader:
         self.model_args = model_args
         self.data_args = data_args
         self.training_args = training_args
-        self.datasets = datasets
-
-        if self.training_args.do_train:
-            self.column_names = self.datasets['train'].column_names
-        if self.training_args.do_eval:
-            self.column_names = self.datasets['validation'].column_names
-        if self.training_args.do_predict:
-            self.column_names = self.datasets['test'].column_names
 
         self.output: dict = {}
 
@@ -59,6 +53,18 @@ class Reader:
             else self.model_args.model_name_or_path,
             use_fast=True,
         )
+        
+        
+        self.data_handler = DataHandler(self.data_args,self.tokenizer)
+
+        #datasets
+        if self.training_args.do_train:
+            self.column_names = self.datasets['train'].column_names
+        if self.training_args.do_eval:
+            self.column_names = self.datasets['validation'].column_names
+        if self.training_args.do_predict:
+            self.column_names = self.datasets['test'].column_names
+        
         self.pad_on_right = self.tokenizer.padding_side == 'right'
         self.last_checkpoint, self.max_seq_length = check_no_error(
             data_args=self.data_args,
@@ -100,11 +106,12 @@ class Reader:
         test_dataset: Optional[Dataset] = None
 
         if self.training_args.do_train:
-            train_dataset = self.preprocess_data()
+            train_dataset = self.data_handler.load_data('train')
         if self.training_args.do_eval:
-            eval_dataset = self.preprocess_data()
+            eval_dataset = self.data_handler.load_data('validation')
+        '''TODO: retreiver랑 통합
         if self.training_args.do_predict:
-            test_dataset = self.preprocess_data()
+            test_dataset = self.data_handler.load_data('train')'''
 
         self._run(train_dataset, eval_dataset, test_dataset)
 
