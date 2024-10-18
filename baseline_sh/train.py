@@ -20,7 +20,8 @@ from transformers import (
     TrainingArguments,
     HfArgumentParser,
 )
-from utils_qa import check_no_error
+from helper import SeedSetter
+from data_preprocessing import DataPreprocessor
 
 
 class MRCTrainer:
@@ -47,141 +48,15 @@ class MRCTrainer:
         self.data_collator = DataCollatorWithPadding(
             self.tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None
         )
+        self.preprocessor = DataPreprocessor(self.tokenizer, self.data_args, self.training_args)
+
 
     def set_random_seed(self):
-        seed = 2024
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
+        seed_setter = SeedSetter(seed=2024)  # SeedSetter 인스턴스 생성
+        seed_setter.set_seed()  # 시드 설정 메서드 호출
 
     def prepare_datasets(self):
-        column_names = self.datasets["train"].column_names if self.training_args.do_train else self.datasets["validation"].column_names
-        question_column_name = "question" if "question" in column_names else column_names[0]
-        context_column_name = "context" if "context" in column_names else column_names[1]
-        answer_column_name = "answers" if "answers" in column_names else column_names[2]
-
-        # Padding 설정
-        pad_on_right = self.tokenizer.padding_side == "right"
-        
-        last_checkpoint, max_seq_length = check_no_error(
-            self.data_args, self.training_args, self.datasets, self.tokenizer
-        )
-
-        train_dataset = self.prepare_dataset("train", question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length) if self.training_args.do_train else None
-        eval_dataset = self.prepare_dataset("validation", question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length) if self.training_args.do_eval else None
-
-        return train_dataset, eval_dataset, last_checkpoint
-
-    def prepare_dataset(self, mode: str, question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int):
-        """훈련 또는 평가 데이터셋을 준비합니다."""
-        return self.datasets[mode].map(
-            lambda examples: self.prepare_features(examples, question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length),
-            batched=True,
-            num_proc=self.data_args.preprocessing_num_workers,
-            remove_columns=self.datasets[mode].column_names,
-            load_from_cache_file=not self.data_args.overwrite_cache,
-        )
-
-    def prepare_features(self, examples, question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int):
-        """
-        공통된 특징 준비 메서드.
-        훈련 또는 평가에 사용할 특징을 준비합니다.
-
-        Args:
-            examples: 원본 예제 데이터.
-            question_column_name: 질문 컬럼 이름.
-            context_column_name: 문맥 컬럼 이름.
-            answer_column_name: 답변 컬럼 이름.
-            pad_on_right: 패딩 방향.
-            max_seq_length: 최대 시퀀스 길이.
-        
-        Returns:
-            tokenized_examples: 전처리된 특징 데이터.
-        """
-        tokenized_examples = self.tokenizer(
-            examples[question_column_name],
-            examples[context_column_name],
-            truncation="only_second",
-            max_length=max_seq_length,
-            stride=self.data_args.doc_stride,
-            return_overflowing_tokens=True,
-            return_offsets_mapping=True,
-            padding="max_length" if self.data_args.pad_to_max_length else False,
-        )
-
-        sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
-
-        if self.training_args.do_train:
-            self.prepare_train_features(tokenized_examples, examples, sample_mapping, answer_column_name, pad_on_right)
-        else:
-            self.prepare_eval_features(tokenized_examples, examples, sample_mapping, pad_on_right)
-
-        return tokenized_examples
-
-    def prepare_train_features(self, tokenized_examples, examples, sample_mapping, answer_column_name: str, pad_on_right: bool):
-        """훈련 데이터를 위한 특징을 준비합니다."""
-        tokenized_examples["start_positions"] = []
-        tokenized_examples["end_positions"] = []
-
-        for i, offsets in enumerate(tokenized_examples["offset_mapping"]):
-            input_ids = tokenized_examples["input_ids"][i]
-            cls_index = input_ids.index(self.tokenizer.cls_token_id)  # cls index
-
-            # sequence id를 설정합니다.
-            sequence_ids = tokenized_examples.sequence_ids(i)
-            sample_index = sample_mapping[i]
-            answers = examples[answer_column_name][sample_index]
-
-            # answer가 없을 경우 cls_index를 answer로 설정합니다.
-            if len(answers["answer_start"]) == 0:
-                tokenized_examples["start_positions"].append(cls_index)
-                tokenized_examples["end_positions"].append(cls_index)
-            else:
-                start_char = answers["answer_start"][0]
-                end_char = start_char + len(answers["text"][0])
-
-                # text에서 current span의 Start token index
-                token_start_index, token_end_index = self.get_token_indices(offsets, sequence_ids, pad_on_right, input_ids)
-
-                if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
-                    tokenized_examples["start_positions"].append(cls_index)
-                    tokenized_examples["end_positions"].append(cls_index)
-                else:
-                    while token_start_index < len(offsets) and offsets[token_start_index][0] <= start_char:
-                        token_start_index += 1
-                    tokenized_examples["start_positions"].append(token_start_index - 1)
-                    while offsets[token_end_index][1] >= end_char:
-                        token_end_index -= 1
-                    tokenized_examples["end_positions"].append(token_end_index + 1)
-
-    def prepare_eval_features(self, tokenized_examples, examples, sample_mapping, pad_on_right: bool):
-        """평가 데이터를 위한 특징을 준비합니다."""
-        tokenized_examples["example_id"] = []
-        for i in range(len(tokenized_examples["input_ids"])):
-            sequence_ids = tokenized_examples.sequence_ids(i)
-            context_index = 1 if pad_on_right else 0
-            sample_index = sample_mapping[i]
-            
-            tokenized_examples["example_id"].append(examples["id"][sample_index])
-            
-            tokenized_examples["offset_mapping"][i] = [
-                (o if sequence_ids[k] == context_index else None)
-                for k, o in enumerate(tokenized_examples["offset_mapping"][i])
-            ]
-
-    def get_token_indices(self, offsets, sequence_ids, pad_on_right, input_ids):
-        """토큰의 시작 및 종료 인덱스를 반환합니다."""
-        token_start_index = 0
-        while sequence_ids[token_start_index] != (1 if pad_on_right else 0):
-            token_start_index += 1
-
-        token_end_index = len(input_ids) - 1
-        while sequence_ids[token_end_index] != (1 if pad_on_right else 0):
-            token_end_index -= 1
-        
-        return token_start_index, token_end_index
-
+        return self.preprocessor.prepare_datasets(self.datasets)
 
 
     def train(self):
