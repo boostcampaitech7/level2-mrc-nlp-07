@@ -24,7 +24,7 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
-from utils_qa import postprocess_qa_predictions
+from post_processing import PostProcessor
 from helper import TrainingValidator
 
 logger = logging.getLogger(__name__)
@@ -145,15 +145,24 @@ class InferenceRunner:
         return eval_dataset
 
     def create_post_processing_function(self, eval_dataset: Dataset, answer_column_name: str) -> Callable:
+        post_processor = PostProcessor(
+            version_2_with_negative=self.data_args.version_2_with_negative,
+            n_best_size=self.data_args.n_best_size,
+            max_answer_length=self.data_args.max_answer_length,
+            null_score_diff_threshold=self.data_args.null_score_diff_threshold,
+            output_dir=self.training_args.output_dir,
+            prefix=None,
+            is_world_process_zero=True,
+        )
+
         def post_processing_function(examples, features, predictions: Tuple[np.ndarray, np.ndarray], training_args: TrainingArguments) -> EvalPrediction:
-            predictions = postprocess_qa_predictions(
+            all_predictions = post_processor.post_process(
                 examples=examples,
                 features=features,
                 predictions=predictions,
-                max_answer_length=self.data_args.max_answer_length,
-                output_dir=training_args.output_dir,
             )
-            formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
+
+            formatted_predictions = [{"id": k, "prediction_text": v} for k, v in all_predictions.items()]
 
             if training_args.do_predict:
                 return formatted_predictions
