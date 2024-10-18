@@ -26,7 +26,7 @@ class ModelArguments:
     )
 
 @dataclass
-class TrainingArguments:
+class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """

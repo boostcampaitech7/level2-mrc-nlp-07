@@ -1,14 +1,14 @@
 from helper import TrainingValidator
 import collections
-from typing import Tuple
+from typing import Tuple, Any, Dict
 
 class DataPreprocessor:
-    def __init__(self, tokenizer, data_args, training_args):
+    def __init__(self, tokenizer: Any, data_args: Any, training_args: Any):
         self.tokenizer = tokenizer
         self.data_args = data_args
         self.training_args = training_args
 
-    def prepare_datasets(self, datasets):
+    def prepare_datasets(self, datasets: Dict[str, Any]) -> Tuple[Any, Any, Any]:
         column_names = datasets["train"].column_names if self.training_args.do_train else datasets["validation"].column_names
         question_column_name = "question" if "question" in column_names else column_names[0]
         context_column_name = "context" if "context" in column_names else column_names[1]
@@ -26,7 +26,7 @@ class DataPreprocessor:
 
         return train_dataset, eval_dataset, last_checkpoint
 
-    def prepare_dataset(self, datasets, mode: str, question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int):
+    def prepare_dataset(self, datasets: Dict[str, Any], mode: str, question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int) -> Any:
         return datasets[mode].map(
             lambda examples: self.prepare_features(examples, question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length),
             batched=True,
@@ -35,7 +35,7 @@ class DataPreprocessor:
             load_from_cache_file=not self.data_args.overwrite_cache,
         )
 
-    def prepare_features(self, examples, question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int):
+    def prepare_features(self, examples: Dict[str, Any], question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int) -> Dict[str, Any]:
         tokenized_examples = self.tokenizer(
             examples[question_column_name],
             examples[context_column_name],
@@ -56,7 +56,7 @@ class DataPreprocessor:
 
         return tokenized_examples
 
-    def prepare_train_features(self, tokenized_examples, examples, sample_mapping, answer_column_name: str, pad_on_right: bool):
+    def prepare_train_features(self, tokenized_examples: Dict[str, Any], examples: Dict[str, Any], sample_mapping: Any, answer_column_name: str, pad_on_right: bool) -> None:
         tokenized_examples["start_positions"] = []
         tokenized_examples["end_positions"] = []
 
@@ -88,7 +88,7 @@ class DataPreprocessor:
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
 
-    def prepare_eval_features(self, tokenized_examples, examples, sample_mapping, pad_on_right: bool):
+    def prepare_eval_features(self, tokenized_examples: Dict[str, Any], examples: Dict[str, Any], sample_mapping: Any, pad_on_right: bool) -> None:
         tokenized_examples["example_id"] = []
         for i in range(len(tokenized_examples["input_ids"])):
             sequence_ids = tokenized_examples.sequence_ids(i)
@@ -102,7 +102,7 @@ class DataPreprocessor:
                 for k, o in enumerate(tokenized_examples["offset_mapping"][i])
             ]
 
-    def get_token_indices(self, offsets, sequence_ids, pad_on_right, input_ids):
+    def get_token_indices(self, offsets: Any, sequence_ids: Any, pad_on_right: bool, input_ids: Any) -> Tuple[int, int]:
         token_start_index = 0
         while sequence_ids[token_start_index] != (1 if pad_on_right else 0):
             token_start_index += 1

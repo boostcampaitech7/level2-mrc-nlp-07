@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import os
 from tqdm import tqdm
-from typing import Tuple, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 class PostProcessor:
     def __init__(self, 
@@ -15,40 +15,40 @@ class PostProcessor:
                  output_dir: Optional[str] = None, 
                  prefix: Optional[str] = None, 
                  is_world_process_zero: bool = True):
-        self.version_2_with_negative = version_2_with_negative
-        self.n_best_size = n_best_size
-        self.max_answer_length = max_answer_length
-        self.null_score_diff_threshold = null_score_diff_threshold
-        self.output_dir = output_dir
-        self.prefix = prefix
-        self.is_world_process_zero = is_world_process_zero
-        self.logger = logging.getLogger(__name__)
+        self.version_2_with_negative: bool = version_2_with_negative
+        self.n_best_size: int = n_best_size
+        self.max_answer_length: int = max_answer_length
+        self.null_score_diff_threshold: float = null_score_diff_threshold
+        self.output_dir: Optional[str] = output_dir
+        self.prefix: Optional[str] = prefix
+        self.is_world_process_zero: bool = is_world_process_zero
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
-    def post_process(self, examples, features, predictions: Tuple[np.ndarray, np.ndarray]):
+    def post_process(self, examples: List[Dict], features: List[Dict], predictions: Tuple[np.ndarray, np.ndarray]) -> Dict[str, Union[str, List[Dict]]]:
         assert len(predictions) == 2, "`predictions` should be a tuple with two elements (start_logits, end_logits)."
         all_start_logits, all_end_logits = predictions
 
         assert len(predictions[0]) == len(features), f"Got {len(predictions[0])} predictions and {len(features)} features."
 
         # Example과 mapping되는 feature 생성
-        example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
-        features_per_example = collections.defaultdict(list)
+        example_id_to_index: Dict[str, int] = {k: i for i, k in enumerate(examples["id"])}
+        features_per_example: Dict[int, List[int]] = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
 
         # Prediction 및 nbest에 해당하는 OrderedDict 생성
-        all_predictions = collections.OrderedDict()
-        all_nbest_json = collections.OrderedDict()
+        all_predictions: Dict[str, str] = collections.OrderedDict()
+        all_nbest_json: Dict[str, List[Dict]] = collections.OrderedDict()
         if self.version_2_with_negative:
-            scores_diff_json = collections.OrderedDict()
+            scores_diff_json: Dict[str, float] = collections.OrderedDict()
 
         self.logger.setLevel(logging.INFO if self.is_world_process_zero else logging.WARN)
         self.logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
 
         for example_index, example in enumerate(tqdm(examples)):
             feature_indices = features_per_example[example_index]
-            min_null_prediction = None
-            prelim_predictions = []
+            min_null_prediction: Optional[Dict[str, Union[Tuple[int, int], float]]] = None
+            prelim_predictions: List[Dict[str, Union[Tuple[int, int], float]]] = []
 
             for feature_index in feature_indices:
                 start_logits = all_start_logits[feature_index]
@@ -131,7 +131,7 @@ class PostProcessor:
 
         return all_predictions
 
-    def _save_results(self, all_predictions, all_nbest_json, scores_diff_json=None):
+    def _save_results(self, all_predictions: Dict[str, str], all_nbest_json: Dict[str, List[Dict]], scores_diff_json: Optional[Dict[str, float]] = None) -> None:
         prediction_file = os.path.join(self.output_dir, "predictions.json" if self.prefix is None else f"predictions_{self.prefix}.json")
         nbest_file = os.path.join(self.output_dir, "nbest_predictions.json" if self.prefix is None else f"nbest_predictions_{self.prefix}.json")
         if self.version_2_with_negative:

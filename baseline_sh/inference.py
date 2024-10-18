@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Callable, Dict, List, NoReturn, Tuple, Optional
+from typing import Callable, Dict, List, NoReturn, Tuple, Optional, Any
 
 import numpy as np
 from arguments import DataTrainingArguments, ModelArguments
@@ -30,13 +30,13 @@ from helper import TrainingValidator
 logger = logging.getLogger(__name__)
 
 class InferenceRunner:
-    def __init__(self):
+    def __init__(self) -> None:
         self.model_args: ModelArguments
         self.data_args: DataTrainingArguments
         self.training_args: TrainingArguments
-        self.tokenizer = None
-        self.model = None
-        self.datasets = None
+        self.tokenizer: Optional[AutoTokenizer] = None
+        self.model: Optional[AutoModelForQuestionAnswering] = None
+        self.datasets: Optional[DatasetDict] = None
 
     def parse_arguments(self) -> None:
         parser = HfArgumentParser(
@@ -91,7 +91,7 @@ class InferenceRunner:
         post_processing_function = self.create_post_processing_function(eval_dataset, answer_column_name)
 
         metric = load_metric("squad")
-        compute_metrics = lambda p: metric.compute(predictions=p.predictions, references=p.label_ids)
+        compute_metrics: Callable[[EvalPrediction], Dict[str, float]] = lambda p: metric.compute(predictions=p.predictions, references=p.label_ids)
 
         trainer = QuestionAnsweringTrainer(
             model=self.model,
@@ -108,8 +108,15 @@ class InferenceRunner:
         logger.info("*** Evaluate ***")
         self.evaluate_or_predict(trainer)
 
-    def prepare_validation_features(self, column_names: List[str], question_column_name: str, context_column_name: str, pad_on_right: bool, max_seq_length: int) -> Dataset:
-        def prepare_validation_features_inner(examples):
+    def prepare_validation_features(
+        self,
+        column_names: List[str],
+        question_column_name: str,
+        context_column_name: str,
+        pad_on_right: bool,
+        max_seq_length: int,
+    ) -> Dataset:
+        def prepare_validation_features_inner(examples: Dict[str, List[str]]) -> Dict[str, List]:
             tokenized_examples = self.tokenizer(
                 examples[question_column_name if pad_on_right else context_column_name],
                 examples[context_column_name if pad_on_right else question_column_name],
@@ -155,7 +162,12 @@ class InferenceRunner:
             is_world_process_zero=True,
         )
 
-        def post_processing_function(examples, features, predictions: Tuple[np.ndarray, np.ndarray], training_args: TrainingArguments) -> EvalPrediction:
+        def post_processing_function(
+            examples: List[Dict[str, Any]],
+            features: List[Dict[str, Any]],
+            predictions: Tuple[np.ndarray, np.ndarray],
+            training_args: TrainingArguments,
+        ) -> EvalPrediction:
             all_predictions = post_processor.post_process(
                 examples=examples,
                 features=features,
@@ -169,7 +181,7 @@ class InferenceRunner:
             elif training_args.do_eval:
                 references = [{"id": ex["id"], "answers": ex[answer_column_name]} for ex in eval_dataset]
                 return EvalPrediction(predictions=formatted_predictions, label_ids=references)
-        
+
         return post_processing_function
 
     def evaluate_or_predict(self, trainer: QuestionAnsweringTrainer) -> None:

@@ -1,7 +1,7 @@
 import logging
 import os
 import random
-from typing import Any, Tuple
+from typing import Any, Tuple, Optional
 
 import numpy as np
 import torch
@@ -43,7 +43,6 @@ class SeedSetter:
         torch.backends.cudnn.benchmark = False
 
 
-
 class TrainingValidator:
     def __init__(self, data_args: DataTrainingArguments, training_args: TrainingArguments, datasets: DatasetDict, tokenizer: PreTrainedTokenizerFast):
         self.data_args = data_args
@@ -51,12 +50,12 @@ class TrainingValidator:
         self.datasets = datasets
         self.tokenizer = tokenizer
 
-    def check_no_error(self) -> Tuple[Any, int]:
+    def check_no_error(self) -> Tuple[Optional[str], int]:
         """
         오류가 없는지 체크하고 마지막 체크포인트와 최대 시퀀스 길이를 반환합니다.
 
         Returns:
-            Tuple[Any, int]: 마지막 체크포인트와 최대 시퀀스 길이.
+            Tuple[Optional[str], int]: 마지막 체크포인트와 최대 시퀀스 길이.
         """
         last_checkpoint = self.find_last_checkpoint()
         self.validate_tokenizer()
@@ -65,12 +64,12 @@ class TrainingValidator:
         
         return last_checkpoint, max_seq_length
 
-    def find_last_checkpoint(self) -> Any:
+    def find_last_checkpoint(self) -> Optional[str]:
         """
         마지막 체크포인트를 찾는 헬퍼 메서드.
 
         Returns:
-            Any: 마지막 체크포인트 경로 또는 None.
+            Optional[str]: 마지막 체크포인트 경로 또는 None.
         """
         last_checkpoint = None
         if (
