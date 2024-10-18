@@ -40,7 +40,6 @@ class SparseEmbedding:
                 vocab = vocab,
                 doc_freqs = doc_freqs,
                 tokenized_docs = self.tokenized_docs,
-                tokenizer = self.tokenizer,
                 ngram_range = self.ngram_range,
                 max_features = self.max_features
             )
