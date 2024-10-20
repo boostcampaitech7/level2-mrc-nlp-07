@@ -1,8 +1,8 @@
 from abc import ABC
 from abc import abstractmethod
 
-#TODO: DataProcessor에 BatchEncoding 형식 적용
-#from transformers import BatchEncoding
+# TODO: DataProcessor에 BatchEncoding 형식 적용
+# from transformers import BatchEncoding
 
 
 class DataProcessor(ABC):
@@ -24,7 +24,7 @@ class DataPreProcessor(DataProcessor):
             BatchEncoding: _description_
         """
         print('Pre-processing...')
-        
+
         return examples
 
 
