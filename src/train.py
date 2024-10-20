@@ -1,7 +1,7 @@
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
 
-from src.reader.model import Reader
+from src.reader.model.reader import Reader
 from src.reader.utils.arguments import DataTrainingArguments
 from src.reader.utils.arguments import ModelArguments
 
