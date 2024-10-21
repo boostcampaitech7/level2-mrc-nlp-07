@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from logging import Logger
 from typing import Any
@@ -5,7 +7,7 @@ from typing import Any
 from datasets import Dataset
 from transformers import TrainingArguments
 
-from src.reader.trainer_qa import QuestionAnsweringTrainer
+from src.reader.model.trainer_qa import QuestionAnsweringTrainer
 
 
 class ResultSaver:

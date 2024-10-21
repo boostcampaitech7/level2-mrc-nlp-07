@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from datasets import Dataset
 from evaluate import load
 from transformers import TrainingArguments
 
-from src.reader.data_handler import DataHandler
-from src.reader.data_processor import DataPostProcessor
-from src.reader.data_processor import DataPreProcessor
+from src.reader.data_controller.data_handler import DataHandler
+from src.reader.data_controller.data_processor import DataPostProcessor
+from src.reader.data_controller.data_processor import DataPreProcessor
 from src.reader.log.logger import setup_logger
 from src.reader.model.huggingface_manager import HuggingFaceLoadManager
 from src.reader.model.result_saver import ResultSaver
