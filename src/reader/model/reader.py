@@ -29,8 +29,8 @@ class Reader:
         self.data_handler = DataHandler(
             data_args=data_args,
             tokenizer=self.model_manager.get_tokenizer(),
-            preprocessor=DataPreProcessor,
-            postprocessor=DataPostProcessor,
+            preprocessor=DataPreProcessor,      # type: ignore
+            postprocessor=DataPostProcessor,    # type: ignore
         )
         self.training_args = training_args
         self.datasets = datasets

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from data_processor import DataProcessor
+from typing import Callable
+
 from datasets import load_from_disk
 from transformers import AutoTokenizer
 
+from src.reader.data_controller.data_processor import DataProcessor
 from src.utils.arguments import DataTrainingArguments
 
 
@@ -31,7 +33,7 @@ class DataHandler():
         self.processors = {'pre': preprocessor, 'pos': postprocessor}
         # TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
 
-    def process_func(self, type: str) -> dict:
+    def process_func(self, type: str) -> Callable:
         """데이터를 처리하는 함수를 반환
 
         Args:
