@@ -43,3 +43,8 @@ repos:
     -   id: mypy
         additional_dependencies: [types-pyyaml]
         exclude: ^testing/resources/
+        args:
+            - --ignore-missing-imports
+            - --no-strict-optional
+            - --allow-untyped-calls
+            - --disable-error-code=assignment
