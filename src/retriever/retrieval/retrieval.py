@@ -8,6 +8,8 @@ from tqdm.auto import tqdm
 from scipy.sparse import save_npz, load_npz, vstack
 from src.utils.timer import timer
 from src.retriever.embedding.sparse_embedding import SparseEmbedding
+from src.retriever.score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
+from src.retriever.similarity import ComputeSimilarity
 
 
 class SparseRetrieval:
@@ -18,8 +20,11 @@ class SparseRetrieval:
         context_path: Optional[str] = "wikipedia_documents.json",
         load_from_file: bool = False,
         mode : Optional[str] = 'bm25',
-        max_feature = None,
-        ngram_range :tuple = (1,2)
+        max_feature:int = None,
+        ngram_range :tuple = (1,2),
+        tokenized_docs = None,
+        k1: float = 1.5,
+        b: float = 0.75,
     ) -> NoReturn:
 
         """
@@ -60,9 +65,9 @@ class SparseRetrieval:
             self.sparse_name = f"{mode}_vector_{str(max_feature)}.bin"
         self.emd_path = os.path.join(self.data_path, self.pickle_name)
         self.sparse_path = os.path.join(self.data_path, self.sparse_name)
-        
-        if not load_from_file:
-            self._initialize_from_wiki(context_path)
+        self.tokenized_docs = tokenized_docs
+        self.k1, self.b = k1, b
+        self._initialize_from_wiki(context_path)
 
     def _initialize_from_wiki(self, context_path: str):
         with open(os.path.join(self.data_path, context_path), "r", encoding="utf-8") as f:
@@ -70,7 +75,7 @@ class SparseRetrieval:
 
         self.docs = list(dict.fromkeys([v["text"] for v in wiki.values()]))
         print(f"Lengths of unique contexts : {len(self.docs)}")
-        self.ids = list(range(len(self.docs)))
+        #self.ids = list(range(len(self.docs)))
         
     def get_sparse_embedding(self) -> NoReturn:
         """
@@ -84,14 +89,15 @@ class SparseRetrieval:
                 - 'my_tfidf': 직접 구현한 TF-IDF
                 - 'bm25': 직접 구현한 BM25
         """
-        if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
-            print(f"Loading {self.mode} embedding...")
-            self.p_embedding = load_npz(self.emd_path)
-            self.sparse_embed = SparseEmbedding.load(self.sparse_path)
-            print("Loading completed.")
-        else:
-            print(f"Building {self.mode} embedding...")
-            self._calculate_embeddings()
+        # if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
+        #     print(f"Loading {self.mode} embedding...")
+        #     self.p_embedding = load_npz(self.emd_path)
+        #     self.sparse_embed = SparseEmbedding.load(self.sparse_path)
+        #     print("Loading completed.")
+        # else:
+            
+        print(f"Building {self.mode} embedding...")
+        self._calculate_embeddings()
 
         print(f"{self.mode} embedding shape:", self.p_embedding.shape)
         
@@ -101,12 +107,15 @@ class SparseRetrieval:
             tokenizer=self.tokenize_fn,
             mode= self.mode,
             ngram_range=self.ngram_range,
-            max_features=self.max_features
+            max_features=self.max_features,
+            tokenized_docs = self.tokenized_docs,
+            k1 = self.k1,
+            b = self.b,
         )
         self.p_embedding = self.sparse_embed.get_embedding()
-        save_npz(self.emd_path, self.p_embedding)
-        self.sparse_embed.save(self.sparse_path)
-        print("New embeddings calculated and saved.")
+        # save_npz(self.emd_path, self.p_embedding)
+        # self.sparse_embed.save(self.sparse_path)
+        # print("New embeddings calculated and saved.")
 
     # 유사도 검색을 통한 비슷한 문서 검색
     def retrieve(
@@ -200,7 +209,7 @@ class SparseRetrieval:
         
         # 쿼리 벡터와 
         with timer("query ex search"):
-            result = query_vec * self.p_embedding.T # (1, 50,000) x (50,000 x 문서 벡터 수) -> (1, 문서 수) -> 가장 유사한 문서를 찾을 수 있다..?
+            result = query_vec @ self.p_embedding.T # (1, 50,000) x (50,000 x 문서 벡터 수) -> (1, 문서 수) -> 가장 유사한 문서를 찾을 수 있다..?
         if not isinstance(result, np.ndarray):
             result = result.toarray()
 
@@ -210,7 +219,11 @@ class SparseRetrieval:
         doc_indices = sorted_result.tolist()[:k] # 상위 k에 대한 인덱스 슬라이싱
         return doc_score, doc_indices 
 
-    def get_relevant_doc_bulk(self, queries: List, k: Optional[int] = 5) -> Tuple[List, List]:
+    def get_relevant_doc_bulk(
+        self, 
+        queries: List, 
+        k: Optional[int] = 5
+        ) -> Tuple[List, List]:
         """
         Arguments:
             queries (List):
@@ -232,6 +245,7 @@ class SparseRetrieval:
 
         print(query_vecs.shape, self.p_embedding.shape)
         # 유사도 계산
+        
         result = query_vecs @ self.p_embedding.T  # 행렬 곱 연산 (질문수, 임베딩 차원) x (임베딩 차원, 문서수)
         # 질문수, 문서 수 -> 점수높은순으로 top-k
         print(f'result shape : {result.shape}')
@@ -247,3 +261,20 @@ class SparseRetrieval:
             doc_indices.append(sorted_result.tolist()[:k])
 
         return doc_scores, doc_indices
+    
+    def get_score(self, df):
+        df["correct"] = df.apply(check_original_in_context, axis=1)
+        df["rmm_score"] = df.apply(calculate_reverse_rank_score, axis=1)
+        df["linear_score"] = df.apply(calculate_linear_score, axis=1)
+        print(
+            "correct retrieval",
+            df["correct"].sum() / len(df),
+        )
+        print(
+            "reverse rank retrieval",
+            df["rmm_score"].sum() / len(df)
+        )
+        print(
+            "linear retrieval",
+            df["linear_score"].sum() / len(df)
+        )
