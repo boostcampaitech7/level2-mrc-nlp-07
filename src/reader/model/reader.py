@@ -5,7 +5,7 @@ from evaluate import load
 from transformers import TrainingArguments
 
 from src import DataTrainingArguments, ModelArguments
-from src import setup_logger
+from src.utils.log.logger import setup_logger
 from src import validate_flags
 from src import DataHandler, DataPreProcessor, DataPostProcessor
 from src import HuggingFaceLoadManager, ResultSaver, TrainerManager

@@ -8,7 +8,7 @@ from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
-from src import setup_logger
+from .log.logger import setup_logger
 from src import DataTrainingArguments
 
 
