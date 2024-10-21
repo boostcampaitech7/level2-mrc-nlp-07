@@ -3,8 +3,10 @@ from konlpy.tag import Okt
 import pandas as pd
 import os
 
-# 데이터셋 로드
-dataset_path = "/data/ephemeral/home/level2-mrc-nlp-07/data/train_dataset"  # 실제 데이터셋 경로로 대체
+# 현재 파일의 위치를 기준으로 상대 경로 생성
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dataset_path = os.path.join(base_dir, '..', 'data', 'train_dataset')  # data/train_dataset의 경로
+# # 데이터셋 로드
 data = load_from_disk(dataset_path)
 
 def preprocess_dataset(data_split):
@@ -54,17 +56,12 @@ print(processed_validation_df.head())
 
 # 필요한 경우 전처리된 데이터셋 저장
 # 데이터셋 경로 지정
-train_json_path = '/data/ephemeral/home/level2-mrc-nlp-07/data/processed_data/train_dataset/train/processed_train_dataset.json'
-validation_json_path = '/data/ephemeral/home/level2-mrc-nlp-07/data/processed_data/train_dataset/validation/processed_validation_dataset.json'
-train_arrow_path = '/data/ephemeral/home/level2-mrc-nlp-07/data/processed_data/train_dataset/train/processed_train_dataset.arrow'
-validation_arrow_path = '/data/ephemeral/home/level2-mrc-nlp-07/data/processed_data/train_dataset/validation/processed_validation_dataset.arrow'
+train_arrow_path = os.path.join(base_dir, '..', 'data', 'noun_dataset', 'train')
+validation_arrow_path = os.path.join(base_dir, '..', 'data', 'noun_dataset', 'validation')
 
 # # 디렉터리 생성
-# os.makedirs(os.path.dirname(train_json_path), exist_ok=True)
-# os.makedirs(os.path.dirname(validation_json_path), exist_ok=True)
-
-processed_train_df.to_json(train_json_path, orient='records', lines=True)
-processed_validation_df.to_json(validation_json_path, orient='records', lines=True)
+os.makedirs(os.path.dirname(train_arrow_path), exist_ok=True)
+os.makedirs(os.path.dirname(validation_arrow_path), exist_ok=True)
 
 # pandas DataFrame을 Dataset 객체로 변환
 train_dataset = Dataset.from_pandas(processed_train_df)
