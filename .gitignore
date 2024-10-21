@@ -1,3 +1,7 @@
 data/
 *__pycache__*
 *.pyc
+mrc/
+.DS_Store
+code/
+.venv/
