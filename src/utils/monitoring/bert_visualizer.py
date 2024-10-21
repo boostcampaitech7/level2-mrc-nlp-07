@@ -1,14 +1,9 @@
 from __future__ import annotations
 
 from bertviz import head_view
-<<<<<<< HEAD:src/utils/monitoring/bert_visualizer.py
 import os
-=======
-from transformers import AutoModelForQuestionAnswering
-from transformers import AutoTokenizer
-from transformers import utils
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer, utils
 
->>>>>>> 95bec6c8e569e482a8c6508405f69f97c5ac3eb2:src/reader/utils/monitoring/bert_visualizer.py
 
 class BERTMRCMonitor:
     def __init__(self, model_name='kykim/bert-kor-base'):
