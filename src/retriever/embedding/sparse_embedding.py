@@ -1,31 +1,50 @@
 from collections import Counter
 from typing import List
 import numpy as np
-import src.embedding as embedding_function
+import src.retriever.embedding as embedding_function
 import pickle
 from tqdm import tqdm
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class SparseEmbedding:
-    def __init__(self, docs: List[str], tokenizer=None, ngram_range:tuple=(1,2), max_features:int=50000, mode: str = 'tfidf'):
+    def __init__(
+        self, 
+        docs: List[str], 
+        tokenizer=None, 
+        ngram_range:tuple=(1,2), 
+        max_features:int=50000,
+        mode: str = 'tfidf', 
+        tokenized_docs:List[str] = None,
+        k1: float = 1.5,
+        b: float = 0.75,
+        ):
+        """
+        Args:
+            docs (List[str]): _description_
+            tokenizer (_type_, optional): _description_. Defaults to None.
+            ngram_range (tuple, optional): _description_. Defaults to (1,2).
+            max_features (int, optional): _description_. Defaults to 50000.
+            mode (str, optional): _description_. Defaults to 'tfidf'.
+            tokenized_docs (_type_, optional): _description_. Defaults to None.
+        """
         self.docs = docs
         self.tokenizer = tokenizer if tokenizer else lambda x: x.split()
         self.ngram_range = ngram_range
         self.max_features = max_features
         self.mode = mode
         self.embedding_function = None
-        self.tokenized_docs = None
-        
+        self.vocab = None
+        self.doc_freqs = None
+        self.k1, self.b = k1, b
         if docs is not None:
             print('Start Initializing...')
             self.tokenized_docs = [self.tokenizer(doc) for doc in tqdm(docs, desc="Tokenizing...")]
+            print('Generating n-grams and building vocabulary...')
+            self._generate_ngrams_and_update_vocab()
             self.initialize_embedding_function()
         
     def initialize_embedding_function(self):
-        print('Building Vocab')
-        vocab = self._build_vocab()
-        print('Calculate doc frequency')
-        doc_freqs = self._compute_doc_freqs()
         print(f'Current mode : {self.mode}')
         if self.mode == 'tfidf':
             self.embedding_function = embedding_function.SklearnTfidf(
@@ -37,8 +56,8 @@ class SparseEmbedding:
             
         elif self.mode == 'my_tfidf':
             self.embedding_function = embedding_function.Tfidf(
-                vocab = vocab,
-                doc_freqs = doc_freqs,
+                vocab = self.vocab,
+                doc_freqs = self.doc_freqs,
                 tokenized_docs = self.tokenized_docs,
                 ngram_range = self.ngram_range,
                 max_features = self.max_features
@@ -46,11 +65,13 @@ class SparseEmbedding:
             
         elif self.mode == 'bm25':
             self.embedding_function = embedding_function.Bm25(
-                vocab = vocab,
-                doc_freqs = doc_freqs,
+                vocab = self.vocab,
+                doc_freqs = self.doc_freqs,
                 tokenized_docs = self.tokenized_docs,
                 ngram_range = self.ngram_range,
-                max_features = self.max_features
+                max_features = self.max_features,
+                k1 = self.k1,
+                b = self.b,
             )
         else:
             raise ValueError(f"Invalid mode: {self.mode}. Choose from 'tfidf', 'my_tfidf', 'bm25'")
@@ -71,18 +92,28 @@ class SparseEmbedding:
             return self.embedding_function.transform(query)
         else:
             return self.embedding_function.transform(tokenized_query)
-        
-    def _build_vocab(self):
-        vocab = set()
-        for doc in tqdm(self.tokenized_docs, desc="빌딩 어휘"):
-            vocab.update(doc)
-        return {word: idx for idx, word in enumerate(sorted(vocab))}
     
-    def _compute_doc_freqs(self):
-        doc_freqs = Counter()
-        for doc in tqdm(self.tokenized_docs, desc="문서 빈도 계산"):
-            doc_freqs.update(set(doc))
-        return doc_freqs
+    def _generate_ngrams_and_update_vocab(self):
+        new_vocab = Counter()
+        new_doc_freqs = Counter()
+        
+        for doc in tqdm(self.tokenized_docs, desc="Generating n-grams"):
+            doc_ngrams = self._get_ngrams(doc)
+            new_vocab.update(doc_ngrams)
+            new_doc_freqs.update(set(doc_ngrams))
+        
+        if self.max_features:
+            new_vocab = dict(new_vocab.most_common(self.max_features))
+        
+        
+        self.vocab = {word: idx for idx, word in enumerate(new_vocab)}
+        self.doc_freqs = {word: new_doc_freqs[word] for word in self.vocab}
+        
+    def _get_ngrams(self, tokens): #(1,2)
+        n_grams = []
+        for n in range(self.ngram_range[0], self.ngram_range[1] + 1):
+            n_grams.extend([' '.join(tokens[i:i+n]) for i in range(len(tokens) - n + 1)])
+        return n_grams
     
     def save(self, filename: str):
         with open(filename, 'wb') as f:
