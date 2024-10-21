@@ -7,8 +7,8 @@ from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
-from src.reader.log.logger import setup_logger
-from src.reader.utils.arguments import DataTrainingArguments
+from ..reader.log.logger import setup_logger
+from src import DataTrainingArguments
 
 
 def check_no_error(

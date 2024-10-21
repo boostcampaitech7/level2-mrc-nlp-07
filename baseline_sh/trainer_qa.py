@@ -61,6 +61,9 @@ class QuestionAnsweringTrainer(Trainer):
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
 
+        if eval_dataset is None or eval_examples is None:
+            raise ValueError("Evaluation dataset and examples must be provided.")
+
         # 평가 수행
         eval_preds = self._shared_evaluate_or_predict(
             eval_dataset, eval_examples, description="Evaluation", ignore_keys=ignore_keys

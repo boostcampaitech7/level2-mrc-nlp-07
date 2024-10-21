@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, utils
 from bertviz import head_view
+import os
 
 class BERTMRCMonitor:
     def __init__(self, model_name="kykim/bert-kor-base"):
@@ -31,6 +32,7 @@ class BERTMRCMonitor:
         Use BERTViz's head_view to generate a visual representation of attention heads.
         """
         html_head_view = head_view(attention, tokens, html_action='return')
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, 'w') as file:
             file.write(html_head_view.data)
         print(f"Head view saved to {output_path}")
@@ -39,6 +41,9 @@ class BERTMRCMonitor:
         """
         Main method to process a question and paragraph, get the attention, and generate the head view.
         """
+        if not question or not paragraph:
+            raise ValueError("질문과 단락은 비어있을 수 없습니다.")
+        
         inputs = self.encode_input(question, paragraph)
         attention = self.get_attention(inputs)
         tokens = self.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])

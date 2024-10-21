@@ -10,7 +10,7 @@ from transformers import BatchEncoding
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
 
-from src.reader.model.trainer_qa import QuestionAnsweringTrainer
+from src import QuestionAnsweringTrainer
 
 
 class TrainerManager:

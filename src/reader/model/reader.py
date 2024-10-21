@@ -4,16 +4,11 @@ from datasets import Dataset
 from evaluate import load
 from transformers import TrainingArguments
 
-from src.reader.data_controller.data_handler import DataHandler
-from src.reader.data_controller.data_processor import DataPostProcessor
-from src.reader.data_controller.data_processor import DataPreProcessor
-from src.reader.log.logger import setup_logger
-from src.reader.model.huggingface_manager import HuggingFaceLoadManager
-from src.reader.model.result_saver import ResultSaver
-from src.reader.model.trainer_manager import TrainerManager
-from src.reader.utils.argument_validator import validate_flags
-from src.reader.utils.arguments import DataTrainingArguments
-from src.reader.utils.arguments import ModelArguments
+from src import DataTrainingArguments, ModelArguments
+from src import setup_logger
+from src import validate_flags
+from src import DataHandler, DataPreProcessor, DataPostProcessor
+from src import HuggingFaceLoadManager, ResultSaver, TrainerManager
 
 
 class Reader:

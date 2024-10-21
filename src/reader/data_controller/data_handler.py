@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from data_processor import DataProcessor
+from .data_processor import DataProcessor
 from datasets import load_from_disk
-from reader.utils.arguments import DataTrainingArguments
+from src import DataTrainingArguments
 from transformers import AutoTokenizer
 
 

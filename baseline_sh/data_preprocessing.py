@@ -1,25 +1,29 @@
 from helper import TrainingValidator
-import collections
 from typing import Tuple, Any, Dict
 
 class DataPreprocessor:
-    def __init__(self, tokenizer: Any, data_args: Any, training_args: Any):
+    def __init__(self, tokenizer: Any, data_args: Any, training_args: Any, datasets: Dict[str, Any] = None):
         self.tokenizer = tokenizer
         self.data_args = data_args
         self.training_args = training_args
+        # datasets를 인자로 받아 TrainingValidator 초기화
+        self.validator = TrainingValidator(data_args, training_args, datasets, tokenizer)
 
     def prepare_datasets(self, datasets: Dict[str, Any]) -> Tuple[Any, Any, Any]:
-        column_names = datasets["train"].column_names if self.training_args.do_train else datasets["validation"].column_names
+        # datasets 할당
+        self.validator.datasets = datasets
+        if self.training_args.do_train:
+            column_names = datasets["train"].column_names
+        else:
+            column_names = datasets["validation"].column_names
         question_column_name = "question" if "question" in column_names else column_names[0]
         context_column_name = "context" if "context" in column_names else column_names[1]
         answer_column_name = "answers" if "answers" in column_names else column_names[2]
 
         pad_on_right = self.tokenizer.padding_side == "right"
-        
+
         # Check for any errors
-        last_checkpoint, max_seq_length = TrainingValidator.check_no_error(
-            self.data_args, self.training_args, datasets, self.tokenizer
-        )
+        last_checkpoint, max_seq_length = self.validator.check_no_error()
 
         train_dataset = self.prepare_dataset(datasets, "train", question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length) if self.training_args.do_train else None
         eval_dataset = self.prepare_dataset(datasets, "validation", question_column_name, context_column_name, answer_column_name, pad_on_right, max_seq_length) if self.training_args.do_eval else None
@@ -36,6 +40,7 @@ class DataPreprocessor:
         )
 
     def prepare_features(self, examples: Dict[str, Any], question_column_name: str, context_column_name: str, answer_column_name: str, pad_on_right: bool, max_seq_length: int) -> Dict[str, Any]:
+        # Tokenization 과정
         tokenized_examples = self.tokenizer(
             examples[question_column_name],
             examples[context_column_name],
@@ -77,6 +82,7 @@ class DataPreprocessor:
 
                 token_start_index, token_end_index = self.get_token_indices(offsets, sequence_ids, pad_on_right, input_ids)
 
+                # Token start/end 인덱스가 유효한지 확인
                 if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                     tokenized_examples["start_positions"].append(cls_index)
                     tokenized_examples["end_positions"].append(cls_index)
@@ -84,7 +90,7 @@ class DataPreprocessor:
                     while token_start_index < len(offsets) and offsets[token_start_index][0] <= start_char:
                         token_start_index += 1
                     tokenized_examples["start_positions"].append(token_start_index - 1)
-                    while offsets[token_end_index][1] >= end_char:
+                    while token_end_index >= 0 and offsets[token_end_index][1] >= end_char:
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
 
@@ -104,11 +110,11 @@ class DataPreprocessor:
 
     def get_token_indices(self, offsets: Any, sequence_ids: Any, pad_on_right: bool, input_ids: Any) -> Tuple[int, int]:
         token_start_index = 0
-        while sequence_ids[token_start_index] != (1 if pad_on_right else 0):
+        while token_start_index < len(sequence_ids) and sequence_ids[token_start_index] != (1 if pad_on_right else 0):
             token_start_index += 1
 
         token_end_index = len(input_ids) - 1
-        while sequence_ids[token_end_index] != (1 if pad_on_right else 0):
+        while token_end_index >= 0 and sequence_ids[token_end_index] != (1 if pad_on_right else 0):
             token_end_index -= 1
         
         return token_start_index, token_end_index

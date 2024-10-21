@@ -56,12 +56,19 @@ class TrainingValidator:
 
         Returns:
             Tuple[Optional[str], int]: 마지막 체크포인트와 최대 시퀀스 길이.
+
+        Raises:
+            ValueError: 유효하지 않은 설정에 대한 오류.
         """
         last_checkpoint = self.find_last_checkpoint()
+        logger.info("Validating tokenizer...")
         self.validate_tokenizer()
+        logger.info("Validating max sequence length...")
         max_seq_length = self.validate_max_seq_length()
+        logger.info("Validating validation dataset...")
         self.validate_validation_dataset()
         
+        logger.info("All validations passed successfully.")
         return last_checkpoint, max_seq_length
 
     def find_last_checkpoint(self) -> Optional[str]:
