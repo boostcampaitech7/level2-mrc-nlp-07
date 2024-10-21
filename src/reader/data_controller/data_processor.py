@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 from abc import ABC
 from abc import abstractmethod
 
-#TODO: DataProcessor에 BatchEncoding 형식 적용
-#from transformers import BatchEncoding
-from utils.postprocess_qa import postprocess_qa_predictions
+from datasets import Dataset
 from transformers import EvalPrediction
+
+from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
+# TODO: DataProcessor에 BatchEncoding 형식 적용
+# from transformers import BatchEncoding
+
 
 class DataProcessor(ABC):
     name = 'DataProc'
-    
+
     @classmethod
     @abstractmethod
     def process(cls, type, tokenizer, data_args, *datasets):
@@ -17,33 +22,25 @@ class DataProcessor(ABC):
 
 class DataPreProcessor(DataProcessor):
     name = 'pre'
-    
+
     @classmethod
-    def process(cls, type, tokenizer, data_args, *datasets) -> dict:
+    def process(cls, type, tokenizer, data_args, *args) -> dict:
         """데이터 전처리
 
         Args:
             type : 처리할 데이터 타입/방법 등
             data_args : dataarguments
             *datasets : 데이터셋
-            
+
 
         Returns:
             processed dataset
         """
         print('Pre-processing...')
-        datasets = datasets[0]
+        datasets: Dataset = args[0]
 
-    
         column_names = datasets.column_names
-        dataset = datasets.map(
-            prepare_train_features if type == 'train' else prepare_validation_features,
-            batched=True,
-            num_proc=data_args.preprocessing_num_workers,
-            remove_columns=column_names,
-            load_from_cache_file=not cls.data_args.overwrite_cache,
-        )
-        
+
         def prepare_train_features(examples):
             question_column_name = 'question' if 'question' in column_names else column_names[0]
             context_column_name = 'context' if 'context' in column_names else column_names[1]
@@ -54,12 +51,13 @@ class DataPreProcessor(DataProcessor):
                 examples[question_column_name if pad_on_right else context_column_name],
                 examples[context_column_name if pad_on_right else question_column_name],
                 truncation='only_second' if pad_on_right else 'only_first',
-                max_length= min(data_args.max_seq_length, tokenizer.model_max_length,
-            ),
+                max_length=min(
+                    data_args.max_seq_length, tokenizer.model_max_length,
+                ),
                 stride=data_args.doc_stride,
                 return_overflowing_tokens=True,
                 return_offsets_mapping=True,
-                padding='max_length' if cls.data_args.pad_to_max_length else False,
+                padding='max_length' if data_args.pad_to_max_length else False,
             )
 
             sample_mapping = tokenized_examples.pop('overflow_to_sample_mapping')
@@ -134,13 +132,21 @@ class DataPreProcessor(DataProcessor):
                     for k, o in enumerate(tokenized_examples['offset_mapping'][i])
                 ]
             return tokenized_examples
-        
+
+        dataset = datasets.map(
+            prepare_train_features if type == 'train' else prepare_validation_features,
+            batched=True,
+            num_proc=data_args.preprocessing_num_workers,
+            remove_columns=column_names,
+            load_from_cache_file=not data_args.overwrite_cache,
+        )
+
         return dataset
 
 
 class DataPostProcessor(DataProcessor):
     name = 'post'
-        
+
     @classmethod
     def process(cls, type, tokenizer, data_args, *datasets):
         # Post-processing: start logits과 end logits을 original context의 정답과 match시킵니다.
@@ -153,33 +159,19 @@ class DataPostProcessor(DataProcessor):
         )
         # Metric을 구할 수 있도록 Format을 맞춰줍니다.
         formatted_predictions = [
-            {"id": k, "prediction_text": v} for k, v in predictions.items()
+            {'id': k, 'prediction_text': v} for k, v in predictions.items()
         ]
         if type == 'predict':
             return formatted_predictions
-        
+
         elif type == 'eval':
-            answer_column_name = ("answers" if "answers" in formatted_predictions.column_names else formatted_predictions.column_names[2])
+            answer_column_name = (
+                'answers' if 'answers' in formatted_predictions.column_names else formatted_predictions.column_names[2]
+            )
             references = [
-                {"id": ex["id"], "answers": ex[answer_column_name]}
-                for ex in datasets["validation"]
+                {'id': ex['id'], 'answers': ex[answer_column_name]}
+                for ex in datasets['validation']
             ]
             return EvalPrediction(
-                predictions=formatted_predictions, label_ids=references
+                predictions=formatted_predictions, label_ids=references,
             )
-
-
-'''if __name__ == '__main__':
-    data = BatchEncoding(
-        {
-            'input_ids': [101, 102, 103],
-            'attention_mask': [1, 1, 1],
-        },
-    )
-
-    preprocessed_data = DataPreProcessor.process(data)
-    print(preprocessed_data)
-
-    postprocessed_data = DataPostProcessor.process(data)
-    print(postprocessed_data)
-'''
