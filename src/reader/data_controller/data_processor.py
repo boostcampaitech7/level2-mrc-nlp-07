@@ -32,14 +32,14 @@ class DataPreProcessor(DataProcessor):
             processed dataset
         """
         print('Pre-processing...')
-        
+        datasets = datasets[0]
 
     
         column_names = datasets.column_names
         dataset = datasets.map(
             prepare_train_features if type == 'train' else prepare_validation_features,
             batched=True,
-            num_proc=cls.data_args.preprocessing_num_workers,
+            num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
             load_from_cache_file=not cls.data_args.overwrite_cache,
         )
@@ -155,10 +155,10 @@ class DataPostProcessor(DataProcessor):
         formatted_predictions = [
             {"id": k, "prediction_text": v} for k, v in predictions.items()
         ]
-        if type is 'predict':
+        if type == 'predict':
             return formatted_predictions
         
-        elif type is 'eval':
+        elif type == 'eval':
             answer_column_name = ("answers" if "answers" in formatted_predictions.column_names else formatted_predictions.column_names[2])
             references = [
                 {"id": ex["id"], "answers": ex[answer_column_name]}

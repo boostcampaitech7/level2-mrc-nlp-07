@@ -35,7 +35,7 @@ class DataHandler():
         processor_func = self.processors[type].process
         return processor_func
 
-    def process_data(self, type: str) -> dict:
+    def process_data(self, proc: str, practice, data_type:str):
         """데이터를 처리함
 
         Args:
@@ -44,7 +44,7 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[type].process()
+        processed_data = self.processors[proc].process(proc, self.tokenizer, self.data_args, self.datasets[data_type])
         return processed_data
     
     def load_data(self, type:str) -> dict:
@@ -62,6 +62,6 @@ class DataHandler():
         if type not in self.datasets:
                 raise ValueError('--do_'+type+' requires a '+type+' dataset')
         
-        datasets = self.process_data('pre')(self.datasets, type)
+        datasets = self.process_data('pre', )
 
         return datasets
