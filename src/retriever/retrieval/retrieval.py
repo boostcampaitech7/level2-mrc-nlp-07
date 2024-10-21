@@ -7,7 +7,7 @@ from datasets import Dataset
 from tqdm.auto import tqdm
 from scipy.sparse import save_npz, load_npz, vstack
 from src.utils.timer import timer
-from src.embedding.sparse_embedding import SparseEmbedding
+from src.retriever.embedding.sparse_embedding import SparseEmbedding
 
 
 class SparseRetrieval:
@@ -17,7 +17,9 @@ class SparseRetrieval:
         data_path: Optional[str] = "../data/",
         context_path: Optional[str] = "wikipedia_documents.json",
         load_from_file: bool = False,
-        mode : Optional[str] = 'bm25'
+        mode : Optional[str] = 'bm25',
+        max_feature = None,
+        ngram_range :tuple = (1,2)
     ) -> NoReturn:
 
         """
@@ -39,22 +41,23 @@ class SparseRetrieval:
                 사전에 미리 학습된 파일들을 들고 오는지에 대한 여부를 알려주는 변수로, bool값
             
             mode:
-                'tfidf' : sklearn의 tfidf 모드.
-                'my_tfidf' : 직접 구현한 tfidf 모드.
-                'bm25' : 직접 구현한 bm25 모드.
-            
-
+                'tfidf' : sklearn의 tfidf 모드. 'my_tfidf' : 직접 구현한 tfidf 모드. 'bm25' : 직접 구현한 bm25 모드.
         Summary:
             Passage 파일을 불러오고 TfidfVectorizer를 선언하는 기능을 합니다.
         """
         # wiki를 불러오기 위해 path 결합 및 불러오기.
         self.data_path = data_path
         self.tokenize_fn = tokenize_fn
+        self.ngram_range = ngram_range
+        self.max_features = max_feature
         self.p_embedding = None
         self.mode = mode
         self.sparse_embed = None
         self.pickle_name = f"{mode}_embedding.npz"
         self.sparse_name = f"{mode}_vector.bin"
+        if max_feature is not None:
+            self.pickle_name = f"{mode}_embedding_{str(max_feature)}.npz"
+            self.sparse_name = f"{mode}_vector_{str(max_feature)}.bin"
         self.emd_path = os.path.join(self.data_path, self.pickle_name)
         self.sparse_path = os.path.join(self.data_path, self.sparse_name)
         
@@ -96,7 +99,9 @@ class SparseRetrieval:
         self.sparse_embed = SparseEmbedding(
             docs=self.docs,
             tokenizer=self.tokenize_fn,
-            mode= self.mode
+            mode= self.mode,
+            ngram_range=self.ngram_range,
+            max_features=self.max_features
         )
         self.p_embedding = self.sparse_embed.get_embedding()
         save_npz(self.emd_path, self.p_embedding)
