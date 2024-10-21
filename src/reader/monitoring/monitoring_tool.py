@@ -106,7 +106,7 @@ class BERTMRCMonitor:
             file.write(html_head_view.data)
         print(f'Head view saved to {output_path}')
 
-    def monitor(self, question, paragraph, output_path='/data/ephemeral/home/head_view.html'):
+    def monitor(self, question, paragraph, output_path='./head_view.html'):
         """
         Main method to process a question and paragraph, get the attention, and generate the head view.
         """
