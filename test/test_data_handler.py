@@ -19,7 +19,7 @@ from src import DataProcessor
 
 @pytest.fixture
 def data_handler():
-    data_args = DataTrainingArguments(dataset_name="../data/train_dataset")
+    data_args = DataTrainingArguments(dataset_name="data/train_dataset")
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
     preprocessor = MagicMock(spec=DataProcessor)
