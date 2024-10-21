@@ -5,7 +5,7 @@ from src.reader.utils.arguments import DataTrainingArguments
 from src.reader.data_controller.data_processor import DataProcessor
 
 class DataHandler():
-    def __init__(self, data_args: DataTrainingArguments, tokenizer: AutoTokenizer, postprocessor:DataProcessor, preprocessor:DataProcessor) -> None:
+    def __init__(self, data_args, tokenizer: AutoTokenizer, postprocessor:DataProcessor, preprocessor:DataProcessor) -> None:
         """DataHandler 초기화 설정.
         Args:
             data_args (DataTrainingArguments): DataTrainingArguments 형식 
@@ -35,7 +35,7 @@ class DataHandler():
         processor_func = self.processors[type].process
         return processor_func
 
-    def process_data(self, proc: str, practice, data_type:str):
+    def process_data(self, processor: str, data_type:str):
         """데이터를 처리함
 
         Args:
@@ -44,7 +44,7 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[proc].process(proc, self.tokenizer, self.data_args, self.datasets[data_type])
+        processed_data = self.processors[processor].process(self.tokenizer, self.data_args, self.datasets[data_type])
         return processed_data
     
     def load_data(self, type:str) -> dict:
@@ -62,6 +62,6 @@ class DataHandler():
         if type not in self.datasets:
                 raise ValueError('--do_'+type+' requires a '+type+' dataset')
         
-        datasets = self.process_data('pre', )
+        datasets = self.process_data(processor='pre', data_type=type)
 
         return datasets

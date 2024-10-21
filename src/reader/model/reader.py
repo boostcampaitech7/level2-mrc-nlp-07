@@ -25,7 +25,7 @@ class Reader:
         self.model_manager = HuggingFaceLoadManager(model_args)
         
         self.data_handler = DataHandler(
-            data_args=data_args,
+            data_args=data_args|model_args,
             tokenizer=self.model_manager.get_tokenizer(),
             preprocessor=DataPreProcessor,
             postprocessor=DataPostProcessor,
