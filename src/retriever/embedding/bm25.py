@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 class Bm25:
-    def __init__(self, vocab, doc_freqs, tokenized_docs, ngram_range, max_features, k1:float=1.5, b:float=0.75):
+    def __init__(self, vocab, doc_freqs, tokenized_docs, ngram_range, max_features, k1:float=1.1, b:float=0.5):
         self.vocab = vocab
         self.doc_freqs = doc_freqs
         self.tokenized_docs = tokenized_docs
