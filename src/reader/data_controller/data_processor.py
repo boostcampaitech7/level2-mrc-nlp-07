@@ -11,7 +11,7 @@ class DataProcessor(ABC):
     
     @classmethod
     @abstractmethod
-    def process(cls, data_args, tokenizer, *datasets):
+    def process(cls, type, tokenizer, data_args, *datasets):
         pass
 
 
@@ -142,14 +142,14 @@ class DataPostProcessor(DataProcessor):
     name = 'post'
         
     @classmethod
-    def process(cls, training_args, tokenizer = None, *datasets):
+    def process(cls, type, tokenizer, data_args, *datasets):
         # Post-processing: start logits과 end logits을 original context의 정답과 match시킵니다.
         predictions = postprocess_qa_predictions(
             examples=datasets[0],
             features=datasets[1],
             predictions=datasets[2],
-            max_answer_length=training_args.max_answer_length,
-            output_dir=training_args.output_dir,
+            max_answer_length=data_args.max_answer_length,
+            output_dir=data_args.output_dir,
         )
         # Metric을 구할 수 있도록 Format을 맞춰줍니다.
         formatted_predictions = [
