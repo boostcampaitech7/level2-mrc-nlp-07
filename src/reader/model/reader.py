@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from datasets import Dataset
 from evaluate import load
 from transformers import TrainingArguments
 
 from src.reader.data_controller.data_handler import DataHandler
-from src.reader.data_controller.data_processor import DataPostProcessor, DataPreProcessor
+from src.reader.data_controller.data_processor import DataPostProcessor
+from src.reader.data_controller.data_processor import DataPreProcessor
 from src.reader.log.logger import setup_logger
 from src.reader.model.huggingface_manager import HuggingFaceLoadManager
 from src.reader.model.result_saver import ResultSaver
@@ -23,9 +26,9 @@ class Reader:
     ):
         self.logger = setup_logger(model_args.model_name_or_path)
         self.model_manager = HuggingFaceLoadManager(model_args)
-        
+
         self.data_handler = DataHandler(
-            data_args=data_args|model_args,
+            data_args=data_args, model_args=model_args,
             tokenizer=self.model_manager.get_tokenizer(),
             preprocessor=DataPreProcessor,
             postprocessor=DataPostProcessor,
