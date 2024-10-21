@@ -1,7 +1,8 @@
 data/
 *__pycache__*
 *.pyc
+level2/
+code/
 mrc/
 .DS_Store
-code/
 .venv/
