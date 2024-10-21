@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
@@ -11,6 +13,7 @@ class HuggingFaceLoadManager:
         self.config = None
         self.tokenizer = None
         self.model = None
+        self.load_model()
 
     def load_model(self):
         """
@@ -18,17 +21,17 @@ class HuggingFaceLoadManager:
         """
         try:
             self.config = AutoConfig.from_pretrained(
-            self.model_args.config_name or self.model_args.model_name_or_path,
-        )
+                self.model_args.config_name or self.model_args.model_name_or_path,
+            )
             self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_args.tokenizer_name or self.model_args.model_name_or_path, use_fast=True,
-        )
+                self.model_args.tokenizer_name or self.model_args.model_name_or_path, use_fast=True,
+            )
             self.model = AutoModelForQuestionAnswering.from_pretrained(
-            self.model_args.model_name_or_path,
-            config=self.config,
-        )
+                self.model_args.model_name_or_path,
+                config=self.config,
+            )
         except Exception as e:
-            raise RuntimeError(f"모델을 로드하는 중 오류 발생: {e}")
+            raise RuntimeError(f'모델을 로드하는 중 오류 발생: {e}')
 
     def get_model(self):
         return self.model
