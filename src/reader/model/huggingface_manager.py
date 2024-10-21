@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer

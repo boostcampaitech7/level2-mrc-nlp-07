@@ -6,9 +6,9 @@ from abc import abstractmethod
 from datasets import Dataset
 from transformers import EvalPrediction
 from .postprocess_qa import postprocess_qa_predictions
+
 # TODO: DataProcessor에 BatchEncoding 형식 적용
 # from transformers import BatchEncoding
-
 
 class DataProcessor(ABC):
     name = 'DataProc'
