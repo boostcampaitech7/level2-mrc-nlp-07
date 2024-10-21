@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 
-from src.reader.utils.arguments import ModelArguments
+from src.utils.arguments import ModelArguments
 
 
 class HuggingFaceLoadManager:

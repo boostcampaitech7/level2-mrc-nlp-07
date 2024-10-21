@@ -244,6 +244,7 @@ class SparseRetrieval:
         ), "query_vecs가 제대로 변환되지않음."
 
         print(query_vecs.shape, self.p_embedding.shape)
+        print(type(query_vecs), type(self.p_embedding))
         # 유사도 계산
         
         result = query_vecs @ self.p_embedding.T  # 행렬 곱 연산 (질문수, 임베딩 차원) x (임베딩 차원, 문서수)

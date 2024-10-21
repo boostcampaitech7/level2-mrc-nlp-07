@@ -5,7 +5,10 @@ from abc import abstractmethod
 
 from datasets import Dataset
 from transformers import EvalPrediction
-from utils.postprocess_qa import postprocess_qa_predictions
+
+from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
+# TODO: DataProcessor에 BatchEncoding 형식 적용
+# from transformers import BatchEncoding
 # TODO: DataProcessor에 BatchEncoding 형식 적용
 # from transformers import BatchEncoding
 

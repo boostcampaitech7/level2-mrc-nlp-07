@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -6,9 +8,9 @@ from datasets import Dataset
 from datasets import DatasetDict
 from transformers import AutoTokenizer
 
-from src.reader.data_handler import DataPostProcessor
-from src.reader.data_handler import DataPreProcessor
-from src.reader.utils.arguments import DataTrainingArguments
+from src.reader.data_controller.data_processor import DataPostProcessor
+from src.reader.data_controller.data_processor import DataPreProcessor
+from src.utils.arguments import DataTrainingArguments
 
 
 @pytest.fixture
