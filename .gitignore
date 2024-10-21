@@ -3,3 +3,6 @@ data/
 *.pyc
 level2/
 code/
+mrc/
+.DS_Store
+.venv/

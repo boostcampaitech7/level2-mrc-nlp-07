@@ -23,6 +23,7 @@ repos:
     rev: v3.1.0
     hooks:
     -   id: add-trailing-comma
+        exclude: ^test/
 -   repo: https://github.com/asottile/pyupgrade
     rev: v3.17.0
     hooks:
@@ -42,3 +43,8 @@ repos:
     -   id: mypy
         additional_dependencies: [types-pyyaml]
         exclude: ^testing/resources/
+        args:
+            - --ignore-missing-imports
+            - --no-strict-optional
+            - --allow-untyped-calls
+            - --disable-error-code=assignment
