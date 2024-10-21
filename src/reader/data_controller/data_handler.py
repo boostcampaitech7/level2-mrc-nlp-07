@@ -1,8 +1,8 @@
 from datasets import load_from_disk
 from transformers import AutoTokenizer
 
-from reader.utils.arguments import DataTrainingArguments
-from data_processor import DataProcessor
+from src.reader.utils.arguments import DataTrainingArguments
+from src.reader.data_controller.data_processor import DataProcessor
 
 class DataHandler():
     def __init__(self, data_args: DataTrainingArguments, tokenizer: AutoTokenizer, postprocessor:DataProcessor, preprocessor:DataProcessor) -> None:

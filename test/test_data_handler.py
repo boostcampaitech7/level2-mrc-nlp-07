@@ -6,8 +6,7 @@ from datasets import Dataset
 from datasets import DatasetDict
 from transformers import AutoTokenizer
 
-from src.reader.data_handler import DataPostProcessor
-from src.reader.data_handler import DataPreProcessor
+from src.reader.data_controller.data_handler import DataPostProcessor, DataPreProcessor
 from src.reader.utils.arguments import DataTrainingArguments
 
 
