@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -6,9 +8,9 @@ from datasets import DatasetDict
 from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 
-from src.reader.model import Reader
-from src.reader.utils.arguments import DataTrainingArguments
-from src.reader.utils.arguments import ModelArguments
+from src.utils.arguments import DataTrainingArguments
+from src.utils.arguments import ModelArguments
+from src.reader.model.reader import Reader
 
 
 @pytest.fixture
@@ -98,7 +100,7 @@ def test_load(mock_model_args, mock_data_args, mock_training_args, mock_datasets
             ),
     ) as mock_tokenizer, \
             patch('transformers.AutoModelForQuestionAnswering.from_pretrained') as mock_model, \
-            patch('src.reader.utils.tokenizer_checker.check_no_error', return_value=(None, 384)):
+            patch('src.utils.tokenizer_checker.check_no_error', return_value=(None, 384)):
 
         reader.load()
         mock_config.assert_called_once_with('bert-base-uncased')
