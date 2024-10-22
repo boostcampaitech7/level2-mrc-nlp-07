@@ -11,7 +11,7 @@ from src.reader.utils.arguments import DataTrainingArguments
 
 
 class DataHandler():
-    def __init__(self, data_args: DataTrainingArguments, model_args: TrainingArguments, tokenizer: AutoTokenizer, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
+    def __init__(self, data_args: DataTrainingArguments, train_args: TrainingArguments, tokenizer: AutoTokenizer, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
         """DataHandler 초기화 설정.
         Args:
             data_args (DataTrainingArguments): DataTrainingArguments 형식
@@ -23,10 +23,10 @@ class DataHandler():
             data_args.max_seq_length, tokenizer.model_max_length,
         )
 
-        self.data_args.output_dir = model_args.output_dir
-        self.data_args.do_predict = model_args.do_predict
-        self.data_args.do_eval = model_args.do_eval
-        self.data_args.do_train = model_args.do_train
+        self.data_args.output_dir = train_args.output_dir
+        self.data_args.do_predict = train_args.do_predict
+        self.data_args.do_eval = train_args.do_eval
+        self.data_args.do_train = train_args.do_train
 
         self.datasets = load_from_disk(self.data_args.dataset_name)
 
@@ -54,7 +54,7 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[proc].process(proc, self.tokenizer, self.data_args, self.datasets[data_type])
+        processed_data = self.processors[proc].process(self.tokenizer, self.data_args, self.datasets[data_type])
         return processed_data
 
     def load_data(self, type: str) -> dict:
