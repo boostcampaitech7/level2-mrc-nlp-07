@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import Any
 from typing import Callable
-from typing import Optional
 
 from datasets import Dataset
 from transformers import AutoModelForQuestionAnswering
@@ -9,7 +10,7 @@ from transformers import BatchEncoding
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
 
-from src.reader.trainer_qa import QuestionAnsweringTrainer
+from src import QuestionAnsweringTrainer
 
 
 class TrainerManager:
@@ -36,8 +37,8 @@ class TrainerManager:
 
     def create_trainer(
         self,
-        train_dataset: Optional[Dataset] = None,
-        eval_dataset: Optional[Dataset] = None,
+        train_dataset: Dataset | None = None,
+        eval_dataset: Dataset | None = None,
     ) -> QuestionAnsweringTrainer:
         """
         모델 학습 및 평가를 위한 Trainer를 생성합니다.

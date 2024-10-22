@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
 
-from src.reader.model.reader import Reader
-from src.reader.utils.arguments import DataTrainingArguments
-from src.reader.utils.arguments import ModelArguments
+from src import Reader
+from src import DataTrainingArguments, ModelArguments
 
 
 def main():
