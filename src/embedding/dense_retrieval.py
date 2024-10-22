@@ -3,7 +3,6 @@ import argparse
 import random
 import torch
 import torch.nn.functional as F
-import time
 import pandas as pd
 from transformers import (BertModel,
                           BertPreTrainedModel,
@@ -15,24 +14,21 @@ from datasets import (Dataset,
                       concatenate_datasets, 
                       load_from_disk)
 from typing import List, NoReturn, Optional
-from contextlib import contextmanager
 from torch.utils.data import(DataLoader,TensorDataset)
 from tqdm import tqdm, trange 
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
+
 from score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
+from utils.timer import timer
 
 torch.manual_seed(2023)
 torch.cuda.manual_seed(2023)
 np.random.seed(2023)
 random.seed(2023)
-
-@contextmanager
-def timer(name):
-    t0 = time.time()
-    yield
-    print(f"[{name}] done in {time.time() - t0:.3f} s")
     
 class BertEncoder(BertPreTrainedModel):
     def __init__(self, config):
@@ -56,31 +52,23 @@ class DenseRetrieval:
                  data_path: Optional[str] = "./data/train_dataset",
                  model_name_or_path: Optional[str] = "bert-base-multilingual-cased",
                  num_neg: int = 3,
-                 use_in_batch_negative_sampling: bool = True
+                 use_in_batch_negative_sampling: bool = True,
+                 train_args: TrainingArguments = None
                 )-> NoReturn:
         self.num_neg = num_neg   
         self.model_name_or_path = model_name_or_path
         self.use_in_batch_negative_sampling = use_in_batch_negative_sampling 
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        self.train_args = train_args
         self.full_ds = self._load_full_data(data_path)
         self.corpus = self._make_corpus()
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        if use_in_batch_negative_sampling:
-            self.q_seqs = self.tokenizer(self.full_ds['question'], padding="max_length", truncation = True, return_tensors = "pt")
-            self.p_seqs = self.tokenizer(self.full_ds['context'], padding="max_length", truncation = True, return_tensors = "pt")
-        else:
-            self.p_with_neg = self._make_p_with_neg_before_batch()
-            self.q_seqs, self.p_seqs = self.set_q_s_seqs()
-        
+        self.p_with_neg = self._make_p_with_neg_before_batch()
+        self.q_seqs, self.p_seqs = self._set_q_and_s_seqs()        
         self.train_dataset = TensorDataset(self.p_seqs['input_ids'], self.p_seqs['attention_mask'], self.p_seqs['token_type_ids'],
                                            self.q_seqs['input_ids'], self.q_seqs['attention_mask'], self.q_seqs['token_type_ids'])        
         
         self.p_encoder = BertEncoder.from_pretrained(self.model_name_or_path)
         self.q_encoder = BertEncoder.from_pretrained(self.model_name_or_path)
-        
-        if torch.cuda.is_available():
-            self.p_encoder.cuda()
-            self.q_encoder.cuda()
-            print("GPU enabled")
         
     def _load_full_data(
         self,
@@ -101,7 +89,7 @@ class DenseRetrieval:
         full_ds = concatenate_datasets(
             [
                 org_dataset["train"].flatten_indices(),
-                org_dataset["validation"].flatten_indices(),
+                org_dataset["validation"].flatten_indices()
             ]
         )  # train dev 를 합친 4192 개 질문에 대해 모두 테스트    
         return full_ds  
@@ -141,9 +129,12 @@ class DenseRetrieval:
                     break 
         return p_with_neg        
        
-    def set_q_s_seqs(self):
-        with timer("tokenizing q_seq"):
-            q_seqs = self.tokenizer(self.full_ds['question'], padding="max_length", truncation = True, return_tensors = "pt")
+    def _set_s_seqs_with_neg(self):
+        """
+        Returns:
+            p_seqs의 tokenized 결과를 (총 context 개수)*(1+num_neg)*(max_length)로 변경한 p_seqs
+        """
+        with timer("tokenizing p_seq"):
             p_seqs = self.tokenizer(self.p_with_neg, padding="max_length", truncation=True, return_tensors='pt')
         
         max_len = p_seqs['input_ids'].size(-1) #맨마지막 dim
@@ -154,12 +145,25 @@ class DenseRetrieval:
         print("p_seqs['input_ids']:",p_seqs['input_ids'].size()) #(num_example, pos + neg, max_len)
         print("p_seqs['attention_mask']:",p_seqs['attention_mask'].size()) #(num_example, pos + neg, max_len)
         print("p_seqs['token_type_ids']:",p_seqs['token_type_ids'].size()) #(num_example, pos + neg, max_len)
-        print("q_seqs['input_ids']:",q_seqs['input_ids'].size()) #(num_example, max_len)
-        print("q_seqs['attention_mask']:",q_seqs['attention_mask'].size()) #(num_example, max_len)
-        print("q_seqs['token_type_ids']:",q_seqs['token_type_ids'].size()) #(num_example, max_len)
-        return q_seqs, p_seqs
+        return p_seqs
    
-    def train_encoders_with_in_batch_negative_sampling(self, args):
+    def _set_q_and_s_seqs(self):
+        """
+        Returns:
+            in batch 여부에 따른 q_seqs와 p_seqs 설정
+        Notes:
+            q_seqs의 경우 in batch 여부와 관계 없이 동일
+            p_seqs의 경우 in batch가 True일 때 train 내부에서 negative sampling 진행,
+            in batch가 False일 때 미리 제작해둔 negative sampling 적용
+        """
+        q_seqs = self.tokenizer(self.full_ds['question'], padding="max_length", truncation = True, return_tensors = "pt")
+        if self.use_in_batch_negative_sampling:
+            p_seqs = self.tokenizer(self.full_ds['context'], padding="max_length", truncation = True, return_tensors = "pt")
+        else:
+            p_seqs = self._set_s_seqs_with_neg()
+        return q_seqs, p_seqs
+            
+    def _train_encoders_with_in_batch_negative_sampling(self, args):
         import torch.nn as nn
 
         batch_size = args.per_device_train_batch_size
@@ -212,7 +216,13 @@ class DenseRetrieval:
 
         return self.p_encoder, self.q_encoder
                                 
-    def train_encoders(self, args):
+    def _train_encoders(self, args):
+        
+        if torch.cuda.is_available():
+            self.p_encoder.cuda()
+            self.q_encoder.cuda()
+            print("GPU enabled")
+            
         num_neg = self.num_neg
         dataset = self.train_dataset
         
@@ -306,10 +316,15 @@ class DenseRetrieval:
 
         return self.p_encoder, self.q_encoder
     
-    def retrieve_passages(
+    def get_dense_embedding(self):
+        if args.use_in_batch_negative_sampling:
+            self.p_encoder, self.q_encoder = self._train_encoders_with_in_batch_negative_sampling(self.train_args)
+        else:
+            self.p_encoder, self.q_encoder = self._train_encoders(self.train_args)
+            
+    def retrieve(
         self,
         queries_or_dataset, 
-        valid_corpus, 
         topk=3
     ):
         """
@@ -324,6 +339,7 @@ class DenseRetrieval:
         Returns:
             pd.DataFrame: 쿼리와 검색된 문서를 포함하는 DataFrame.
         """
+        valid_corpus = list(set([example['context'] for example in queries_or_dataset]))
         with torch.no_grad():
             self.p_encoder.eval()
             self.q_encoder.eval()
@@ -381,6 +397,23 @@ class DenseRetrieval:
 
         return pd.DataFrame(total)
     
+    def get_score(self, df):
+        df["correct"] = df.apply(check_original_in_context, axis=1)
+        df["rr_score"] = df.apply(calculate_reverse_rank_score, axis=1)
+        df["linear_score"] = df.apply(calculate_linear_score, axis=1)
+        print(
+            "correct retrieval",
+            df["correct"].sum() / len(df),
+        )
+        print(
+            "reverse rank retrieval",
+            df["rr_score"].sum() / len(df)
+        )
+        print(
+            "linear retrieval",
+            df["linear_score"].sum() / len(df)
+        )
+        
 if __name__ == "__main__":
     import argparse
 
@@ -397,16 +430,16 @@ if __name__ == "__main__":
         help="",
         default="/data/ephemeral/home/level2-mrc-nlp-07/data/train_dataset")
     parser.add_argument("--num_neg", 
-        metavar=5, 
+        metavar=10, 
         type=int, 
         help="",
-        default=5
+        default=10
         )
     parser.add_argument("--use_in_batch_negative_sampling", 
-        metavar=True, 
+        metavar=False, 
         type=bool, 
         help="",
-        default=True
+        default=False
         )
     
     args = parser.parse_args()
@@ -423,36 +456,17 @@ if __name__ == "__main__":
         args.data_path,
         args.model_name_or_path,
         args.num_neg,
-        args.use_in_batch_negative_sampling
+        args.use_in_batch_negative_sampling,
+        train_args
     )
     
-    if args.use_in_batch_negative_sampling:
-        p_encoder, q_encoder = denseRetrieval.train_encoders_with_in_batch_negative_sampling(train_args)
-    else:
-        p_encoder, q_encoder = denseRetrieval.train_encoders(train_args)
-        
     org_dataset = load_from_disk(args.data_path)
-    
-    valid_corpus = list(set([example['context'] for example in org_dataset['validation']]))
-    
     queries = org_dataset['validation']
-    ground_truths = org_dataset['validation']['context']
     
-    with timer("bulk query by exhaustive search"):
-        df = denseRetrieval.retrieve_passages(queries, valid_corpus,topk=10)
-        df["correct"] = df.apply(check_original_in_context, axis=1)
-        df["rmm_score"] = df.apply(calculate_reverse_rank_score, axis=1)
-        df["linear_score"] = df.apply(calculate_linear_score, axis=1)
-        print(
-            "correct retrieval result by fiass search",
-            df["correct"].sum() / len(df),
-        )
-        print(
-            "mrr retrieval result by fiass search",
-            df["rmm_score"].sum() / len(df)
-        )
-        print(
-            "linear retrieval result by fiass search",
-            df["linear_score"].sum() / len(df)
-        )
+    denseRetrieval.get_dense_embedding()
+    with timer("bulk query search"):
+        df = denseRetrieval.retrieve(queries,topk=10)
+        denseRetrieval.get_score(df)
+        
+        #df.to_csv('output_vanilla_epoch_5.csv', index=False, encoding='utf-8-sig')
     
