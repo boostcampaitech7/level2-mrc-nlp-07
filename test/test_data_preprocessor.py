@@ -1,8 +1,8 @@
 import pytest
 from datasets import load_from_disk
 from transformers import PreTrainedTokenizerFast, EvalPrediction
-from src import DataPreProcessor, DataPostProcessor
-from src import DataTrainingArguments
+from src.reader.data_controller.data_processor import DataPreProcessor, DataPostProcessor
+from src.utils.arguments import DataTrainingArguments
 from transformers import BertTokenizerFast
 
 @pytest.fixture

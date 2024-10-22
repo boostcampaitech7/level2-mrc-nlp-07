@@ -9,7 +9,7 @@ from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
 from .log.logger import setup_logger
-from src import DataTrainingArguments
+from src.utils.arguments import DataTrainingArguments
 
 
 def check_no_error(

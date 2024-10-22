@@ -1,8 +1,8 @@
 import pytest
 from transformers import EvalPrediction
-from src import DataPostProcessor  # 여기에 DataPostProcessor의 경로를 적어주세요
-from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions  # postprocess_qa_predictions의 경로를 적어주세요
-from src import DataTrainingArguments  # DataTrainingArguments의 경로를 적어주세요
+from src.reader.data_controller.data_processor import DataPostProcessor
+from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
+from src.utils.arguments import DataTrainingArguments
 
 @pytest.fixture
 def sample_data():

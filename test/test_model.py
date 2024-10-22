@@ -8,8 +8,8 @@ from datasets import DatasetDict
 from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 
-from src import Reader
-from src import DataTrainingArguments, ModelArguments
+from src.reader.model.reader import Reader
+from src.utils.arguments import DataTrainingArguments, ModelArguments
 
 
 @pytest.fixture
