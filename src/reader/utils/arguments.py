@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from dataclasses import field
 
@@ -44,7 +46,7 @@ class DataTrainingArguments:
     """
 
     dataset_name: str | None = field(
-        default='../../data/train_dataset',
+        default='/data/ephemeral/home/level2-mrc-nlp-07/data/train_dataset',
         metadata={
             'help': 'The name of the dataset to use.',
         },
