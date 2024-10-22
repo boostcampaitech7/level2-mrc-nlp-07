@@ -4,14 +4,15 @@ from datasets import Dataset
 from evaluate import load
 from transformers import TrainingArguments
 
-from src.utils.arguments import DataTrainingArguments, ModelArguments
-from src.utils.log.logger import setup_logger
-from src.utils.argument_validator import validate_flags
-from src.reader.data_controller.data_processor import DataPreProcessor, DataPostProcessor
-from src.reader.model.trainer_manager import TrainerManager
-from src.reader.data_controller.data_handler import DataHandler
-from src.reader.model.huggingface_manager import HuggingFaceLoadManager
-from src.reader.model.result_saver import ResultSaver
+from reader.data_controller.data_handler import DataHandler
+from reader.data_controller.data_processor import DataPostProcessor
+from reader.data_controller.data_processor import DataPreProcessor
+from reader.model.huggingface_manager import HuggingFaceLoadManager
+from reader.model.result_saver import ResultSaver
+from reader.model.trainer_manager import TrainerManager
+from utils.argument_validator import validate_flags
+from utils.arguments import DataTrainingArguments, ModelArguments
+from utils.log.logger import setup_logger
 
 
 class Reader:
@@ -26,7 +27,7 @@ class Reader:
         self.model_manager = HuggingFaceLoadManager(model_args)
 
         self.data_handler = DataHandler(
-            data_args=data_args, model_args=model_args,
+            data_args=data_args, train_args=training_args,
             tokenizer=self.model_manager.get_tokenizer(),
             preprocessor=DataPreProcessor,      # type: ignore
             postprocessor=DataPostProcessor,    # type: ignore
@@ -43,7 +44,7 @@ class Reader:
         # 데이터 전처리
         train_dataset = self.data_handler.load_data('train') if self.training_args.do_train else None
         eval_dataset = self.data_handler.load_data('validation') if self.training_args.do_eval else None
-        test_dataset = self.data_handler.load_data('test') if self.training_args.do_predict else None
+        test_dataset = self.data_handler.load_data('validation') if self.training_args.do_predict else None
 
         # TrainerManager 생성 및 실행
         trainer_manager = TrainerManager(

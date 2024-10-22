@@ -23,7 +23,8 @@ import os
 
 import numpy as np
 from tqdm.auto import tqdm
-from src.utils.log.logger import setup_logger
+
+from utils.log.logger import setup_logger
 
 
 def postprocess_qa_predictions(

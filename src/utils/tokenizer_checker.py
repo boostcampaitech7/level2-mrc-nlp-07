@@ -8,8 +8,8 @@ from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
-from .log.logger import setup_logger
-from src.utils.arguments import DataTrainingArguments
+from utils.log.logger import setup_logger
+from utils.arguments import DataTrainingArguments
 
 
 def check_no_error(

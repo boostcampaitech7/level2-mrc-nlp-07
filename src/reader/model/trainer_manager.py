@@ -10,7 +10,7 @@ from transformers import BatchEncoding
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
 
-from src.reader.model.trainer_qa import QuestionAnsweringTrainer
+from reader.model.trainer_qa import QuestionAnsweringTrainer
 
 
 class TrainerManager:
@@ -79,7 +79,7 @@ class TrainerManager:
         Returns:
             Any: 학습 결과.
         """
-        checkpoint = self.training_args.last_checkpoint or None
+        checkpoint = self.training_args.resume_from_checkpoint or None
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         return train_result
 

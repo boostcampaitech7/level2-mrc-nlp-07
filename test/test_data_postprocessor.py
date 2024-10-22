@@ -4,6 +4,7 @@ from src.reader.data_controller.data_processor import DataPostProcessor
 from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
 from src.utils.arguments import DataTrainingArguments
 
+
 @pytest.fixture
 def sample_data():
     # 테스트 데이터 생성
@@ -29,6 +30,7 @@ def sample_data():
         '__index_level_0__': 2354
     }
 
+
 def test_data_post_processor_predict(sample_data):
     # DataPostProcessor 인스턴스를 생성하고 process 메서드를 호출합니다.
     tokenizer = None  # 필요한 경우 실제 토크나이저를 여기에 정의하세요.
@@ -45,6 +47,7 @@ def test_data_post_processor_predict(sample_data):
     assert len(formatted_predictions) == 1
     assert formatted_predictions[0]['id'] == sample_data['id']
     assert formatted_predictions[0]['prediction_text'] == '크리스토포 알하우스'  # 예상되는 결과
+
 
 def test_data_post_processor_eval(sample_data):
     # DataPostProcessor 인스턴스를 생성하고 process 메서드를 호출합니다.

@@ -10,16 +10,13 @@ from src.reader.data_controller.data_processor import DataProcessor
 
 @pytest.fixture
 def data_handler():
-    data_args = DataTrainingArguments(dataset_name="data/train_dataset")
-    model_args = ModelArguments(output_dir="./models/train_dataset", do_predict=False, do_eval=False, do_train=True)
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    data_args = DataTrainingArguments(dataset_name='data/train_dataset')
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
 
-    # Mock 객체 생성
     preprocessor = MagicMock(spec=DataProcessor)
     postprocessor = MagicMock(spec=DataProcessor)
 
-    # DataHandler 초기화 (model_args 추가)
-    handler = DataHandler(data_args, model_args, tokenizer, postprocessor, preprocessor)
+    handler = DataHandler(data_args, tokenizer, postprocessor, preprocessor)
 
     return handler, preprocessor, postprocessor
 
@@ -47,9 +44,9 @@ def test_load_data_missing_dataset(data_handler):
 
 def test_process_data(data_handler):
     handler, preprocessor, _ = data_handler
-    preprocessor.process.return_value = "processed_data"
+    preprocessor.process.return_value = 'processed_data'
     processed = handler.process_data('pre', None, 'train')
-    assert processed == "processed_data"
+    assert processed == 'processed_data'
     preprocessor.process.assert_called_once()
 
 

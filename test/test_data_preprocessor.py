@@ -20,12 +20,13 @@ def tokenizer():
     # 샘플 토크나이저 생성
     return BertTokenizerFast.from_pretrained('bert-base-uncased')
 
+
 def test_data_preprocessor(sample_data, tokenizer, data_args):
     processor = DataPreProcessor()
-    
+
     # 데이터 전처리
     processed_dataset = processor.process('train', tokenizer, data_args, sample_data)
-    
+
     # 결과 검증
     assert 'input_ids' in processed_dataset[0]
     assert 'start_positions' in processed_dataset[0]
