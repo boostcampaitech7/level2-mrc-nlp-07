@@ -13,16 +13,16 @@ import src.retriever.embedding as embedding_function
 
 class SparseEmbedding:
     def __init__(
-        self,
-        docs: list[str],
-        tokenizer=None,
-        ngram_range: tuple = (1, 2),
-        max_features: int = 50000,
-        mode: str = 'tfidf',
-        tokenized_docs: list[str] = None,
+        self, 
+        docs: List[str], 
+        tokenizer=None, 
+        ngram_range:tuple=(1,2), 
+        max_features:int=50000,
+        mode: str = 'tfidf', 
+        tokenized_docs:List[str] = None,
         k1: float = 1.1,
         b: float = 0.5,
-    ):
+        ):
         """
         Args:
             docs (List[str]): _description_
