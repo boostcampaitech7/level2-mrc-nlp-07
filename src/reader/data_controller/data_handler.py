@@ -3,10 +3,9 @@ from __future__ import annotations
 from typing import Callable
 
 from datasets import load_from_disk
+from reader.data_controller.data_processor import DataProcessor
 from transformers import AutoTokenizer
 from transformers import TrainingArguments
-
-from reader.data_controller.data_processor import DataProcessor
 from utils.arguments import DataTrainingArguments
 
 
@@ -54,7 +53,7 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[proc].process(self.tokenizer, self.data_args, self.datasets[data_type])
+        processed_data = self.processors[proc].process(self.data_args, self.datasets[data_type], tokenizer=self.tokenizer)
         return processed_data
 
     def load_data(self, type: str) -> dict:
