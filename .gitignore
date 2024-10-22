@@ -8,3 +8,4 @@ mrc/
 .venv/
 train_test.ipynb
 outputs/
+models/

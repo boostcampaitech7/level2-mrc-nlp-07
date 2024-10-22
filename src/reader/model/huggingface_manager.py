@@ -4,7 +4,7 @@ from transformers import AutoConfig
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 
-from src.utils.arguments import ModelArguments
+from utils.arguments import ModelArguments
 
 
 class HuggingFaceLoadManager:

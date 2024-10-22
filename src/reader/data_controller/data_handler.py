@@ -6,8 +6,8 @@ from datasets import load_from_disk
 from transformers import AutoTokenizer
 from transformers import TrainingArguments
 
-from src.reader.data_controller.data_processor import DataProcessor
-from src.utils.arguments import DataTrainingArguments
+from reader.data_controller.data_processor import DataProcessor
+from utils.arguments import DataTrainingArguments
 
 
 class DataHandler():

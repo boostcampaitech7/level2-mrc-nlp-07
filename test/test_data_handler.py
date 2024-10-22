@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
+from unittest.mock import MagicMock
 from transformers import AutoTokenizer
-
-from src import DataHandler
-from src import DataProcessor
-from src import DataTrainingArguments
+from src.reader.data_controller.data_handler import DataHandler
+from src.utils.arguments import DataTrainingArguments, ModelArguments
+from src.reader.data_controller.data_processor import DataProcessor
 
 
 @pytest.fixture
@@ -54,6 +52,6 @@ def test_process_data(data_handler):
 
 def test_process_func(data_handler):
     handler, preprocessor, _ = data_handler
-    preprocessor.process = MagicMock(return_value='processed_func')
+    preprocessor.process = MagicMock(return_value="processed_func")
     result = handler.process_func('pre')
-    assert result() == 'processed_func'
+    assert result() == "processed_func"

@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from datasets import Dataset
 from evaluate import load
+from reader.data_controller.data_handler import DataHandler
+from reader.data_controller.data_processor import DataPostProcessor
+from reader.data_controller.data_processor import DataPreProcessor
+from reader.model.huggingface_manager import HuggingFaceLoadManager
+from reader.model.result_saver import ResultSaver
+from reader.model.trainer_manager import TrainerManager
+from transformers import EvalPrediction
 from transformers import TrainingArguments
-
-from src.reader.data_controller.data_handler import DataHandler
-from src.reader.data_controller.data_processor import DataPostProcessor
-from src.reader.data_controller.data_processor import DataPreProcessor
-from src.reader.model.huggingface_manager import HuggingFaceLoadManager
-from src.reader.model.result_saver import ResultSaver
-from src.reader.model.trainer_manager import TrainerManager
-from src.utils.argument_validator import validate_flags
-from src.utils.arguments import DataTrainingArguments
-from src.utils.arguments import ModelArguments
-from src.utils.log.logger import setup_logger
+from utils.argument_validator import validate_flags
+from utils.arguments import DataTrainingArguments
+from utils.arguments import ModelArguments
+from utils.log.logger import setup_logger
 
 
 class Reader:
@@ -30,12 +30,15 @@ class Reader:
         self.data_handler = DataHandler(
             data_args=data_args, train_args=training_args,
             tokenizer=self.model_manager.get_tokenizer(),
+
             preprocessor=DataPreProcessor,                          # type: ignore[arg-type]
             postprocessor=DataPostProcessor,                        # type: ignore[arg-type]
+
         )
         self.training_args = training_args
         self.datasets = datasets
         self.result_saver = ResultSaver(training_args, self.logger)
+        self.metric = load('squad')     # TODO: 리터럴 스트링 상수에서 뺄 것
 
     def run(self):
         """Reader 실행 함수."""
@@ -52,7 +55,7 @@ class Reader:
             model=self.model_manager.get_model(),
             tokenizer=self.model_manager.get_tokenizer(),
             training_args=self.training_args,
-            compute_metrics=lambda p: load('squad').compute(predictions=p.predictions, references=p.label_ids),
+            compute_metrics=self.compute_metrics,
         )
 
         trainer = trainer_manager.create_trainer(train_dataset, eval_dataset)
@@ -68,3 +71,6 @@ class Reader:
         if self.training_args.do_predict:
             predictions = trainer_manager.run_prediction(trainer, test_dataset, eval_dataset)
             self.result_saver.save_predictions(predictions)
+
+    def compute_metrics(self, p: EvalPrediction):
+        return self.metric.compute(predictions=p.predictions, references=p.label_ids)

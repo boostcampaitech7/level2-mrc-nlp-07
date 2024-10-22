@@ -10,6 +10,7 @@ from tqdm import tqdm
 from transformers import BartForConditionalGeneration
 from transformers import BartTokenizer
 
+
 # 1. Arrow 파일 로드
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dataset_path = os.path.join(base_dir, '..', 'data', 'train_dataset')
@@ -21,8 +22,6 @@ tokenizer = BartTokenizer.from_pretrained(model_name)
 model = BartForConditionalGeneration.from_pretrained(model_name)
 
 # 3. 질문 생성 함수
-
-
 def generate_question(context, num_questions=1):
     input_ids = tokenizer.encode(context, return_tensors='pt', truncation=True, max_length=512)
 
@@ -38,8 +37,6 @@ def generate_question(context, num_questions=1):
     return questions[0] if questions else None
 
 # 4. 데이터셋을 순회하며 기존 질문과 생성된 질문을 각각 별도 데이터로 추가
-
-
 def preprocess_dataset(data_split):
     processed_data = []
 

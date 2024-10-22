@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+<<<<<<< HEAD:src/utils/monitoring/bert_visualizer.py
+from bertviz import head_view
+import os
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer, utils
+=======
 import os
 
 from bertviz import head_view
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import utils
+>>>>>>> 708063ac47a0b800d5127250b4f4154c50728217:src/reader/utils/monitoring/bert_visualizer.py
 
 
 class BERTMRCMonitor:
@@ -48,8 +54,13 @@ class BERTMRCMonitor:
         Main method to process a question and paragraph, get the attention, and generate the head view.
         """
         if not question or not paragraph:
+<<<<<<< HEAD:src/utils/monitoring/bert_visualizer.py
+            raise ValueError("질문과 단락은 비어있을 수 없습니다.")
+        
+=======
             raise ValueError('질문과 단락은 비어있을 수 없습니다.')
 
+>>>>>>> 708063ac47a0b800d5127250b4f4154c50728217:src/reader/utils/monitoring/bert_visualizer.py
         inputs = self.encode_input(question, paragraph)
         attention = self.get_attention(inputs)
         tokens = self.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])

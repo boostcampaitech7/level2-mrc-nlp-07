@@ -36,6 +36,14 @@ class ModelArguments:
             """,
         },
     )
+    # output_dir: str = field(  # 여기에 output_dir 추가
+    #     default='./models',  # 기본 경로를 설정할 수 있습니다.
+    #     metadata={
+    #         'help': """
+    #         The output directory where the model predictions and checkpoints will be written.
+    #         """,
+    #     },
+    # )
 
 
 @dataclass
