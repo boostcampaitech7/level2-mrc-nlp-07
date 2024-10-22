@@ -169,12 +169,12 @@ class DataPostProcessor(DataProcessor):
 
         elif data_args.do_eval:
             answer_column_name = (
-                'answers' if 'answers' in predictions.column_names else predictions.column_names[2]
+                'answers' if 'answers' in datasets[0].column_names else datasets[0].column_names[2]
             )
             references = [
                 {'id': ex['id'], 'answers': ex[answer_column_name]}
-                for ex in predictions['validation']
-                # CHECK 에러 가능성
+                for ex in datasets[0]
+                # LOOK 후처리로 넘어오는 데이터셋 3총사 구조 파악 필요
             ]
             return EvalPrediction(
                 predictions=formatted_predictions, label_ids=references,

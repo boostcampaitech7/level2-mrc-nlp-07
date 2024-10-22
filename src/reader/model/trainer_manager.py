@@ -46,6 +46,7 @@ class TrainerManager:
         self,
         train_dataset: Dataset | None = None,
         eval_dataset: Dataset | None = None,
+        eval_example: Dataset | None = None,
         post_processing_function: Callable | None = DataPostProcessor.process,
     ) -> QuestionAnsweringTrainer:
         """
@@ -67,6 +68,7 @@ class TrainerManager:
             args=self.training_args,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            eval_examples=eval_example,
             tokenizer=self.tokenizer,
             data_collator=data_collator,
             compute_metrics=self.compute_metrics,

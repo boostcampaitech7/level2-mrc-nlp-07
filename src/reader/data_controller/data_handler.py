@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+from datasets import DatasetDict
 from datasets import load_from_disk
 from reader.data_controller.data_processor import DataProcessor
 from transformers import AutoTokenizer
@@ -56,7 +57,7 @@ class DataHandler():
         processed_data = self.processors[proc].process(self.data_args, self.datasets[data_type], tokenizer=self.tokenizer)
         return processed_data
 
-    def load_data(self, type: str) -> dict:
+    def load_data(self, type: str) -> DatasetDict:
         """데이터를 로드, 기본적으로 전처리 함
 
         Args:
@@ -74,3 +75,11 @@ class DataHandler():
         datasets = self.process_data('pre', type)
 
         return datasets
+
+    def plain_data(self, type) -> DatasetDict:
+        """전처리 거치지 않은 데이터셋을 반환
+
+        Args:
+            type (str): data type
+        """
+        return self.datasets[type]
