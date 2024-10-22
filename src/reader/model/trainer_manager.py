@@ -4,13 +4,16 @@ from typing import Any
 from typing import Callable
 
 from datasets import Dataset
+from reader.model.trainer_qa import QuestionAnsweringTrainer
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import BatchEncoding
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
 
-from reader.model.trainer_qa import QuestionAnsweringTrainer
+from src.reader.data_controller.data_processor import DataPostProcessor
+from src.utils.arguments import DataTrainingArguments
+# TODO 종속성 문제 존재, 추후 수정 필요
 
 
 class TrainerManager:
@@ -19,6 +22,7 @@ class TrainerManager:
         model: AutoModelForQuestionAnswering,
         tokenizer: AutoTokenizer,
         training_args: TrainingArguments,
+        data_args: DataTrainingArguments,
         compute_metrics: Callable,
     ):
         """
@@ -35,10 +39,14 @@ class TrainerManager:
         self.training_args = training_args
         self.compute_metrics = compute_metrics
 
+        self.training_args.max_answer_length = data_args.max_answer_length
+        # TODO trainig_args에 max_answer_length 동적 할당
+
     def create_trainer(
         self,
         train_dataset: Dataset | None = None,
         eval_dataset: Dataset | None = None,
+        post_processing_function: Callable | None = DataPostProcessor.process,
     ) -> QuestionAnsweringTrainer:
         """
         모델 학습 및 평가를 위한 Trainer를 생성합니다.
@@ -62,6 +70,7 @@ class TrainerManager:
             tokenizer=self.tokenizer,
             data_collator=data_collator,
             compute_metrics=self.compute_metrics,
+            post_process_function=post_processing_function,
         )
 
     def run_training(
@@ -99,6 +108,7 @@ class TrainerManager:
             Dict[str, Any]: 평가 결과 메트릭.
         """
         return trainer.evaluate(eval_dataset=eval_dataset)
+        # fix: eval_example이 인자로 전달되지 않음
 
     def run_prediction(
         self,

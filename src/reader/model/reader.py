@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datasets import Dataset
 from evaluate import load
-from reader.data_controller.data_handler import DataHandler
 from reader.data_controller.data_processor import DataPostProcessor
 from reader.data_controller.data_processor import DataPreProcessor
 from reader.model.huggingface_manager import HuggingFaceLoadManager
@@ -15,6 +14,8 @@ from utils.arguments import DataTrainingArguments
 from utils.arguments import ModelArguments
 from utils.log.logger import setup_logger
 
+from src.reader.data_controller.data_handler import DataHandler
+
 
 class Reader:
     def __init__(
@@ -26,6 +27,7 @@ class Reader:
     ):
         self.logger = setup_logger(model_args.model_name_or_path)
         self.model_manager = HuggingFaceLoadManager(model_args)
+        self.data_args = data_args
 
         self.data_handler = DataHandler(
             data_args=data_args, train_args=training_args,
@@ -55,10 +57,11 @@ class Reader:
             model=self.model_manager.get_model(),
             tokenizer=self.model_manager.get_tokenizer(),
             training_args=self.training_args,
+            data_args=self.data_args,
             compute_metrics=self.compute_metrics,
         )
-
-        trainer = trainer_manager.create_trainer(train_dataset, eval_dataset)
+        print(eval_dataset)
+        trainer = trainer_manager.create_trainer(train_dataset, eval_dataset, self.data_handler.process_func('pos'))
 
         if self.training_args.do_train:
             train_result = trainer_manager.run_training(trainer, train_dataset)

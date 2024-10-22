@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 from typing import Any
 from typing import Callable
-from typing import Optional
-from typing import Union
 
 from transformers import BatchEncoding
 from transformers import is_datasets_available
@@ -20,7 +20,7 @@ class QuestionAnsweringTrainer(Trainer):
     def __init__(
         self,
         *args,
-        eval_examples: Optional[datasets.Dataset] = None,
+        eval_examples: datasets.Dataset | None = None,
         post_process_function: Callable | None = None,
         **kwargs,
     ):
@@ -41,9 +41,9 @@ class QuestionAnsweringTrainer(Trainer):
         dataset: datasets.Dataset,
         examples: datasets.Dataset,
         description: str,
-        ignore_keys: Optional[Union[str, list]] = None,
+        ignore_keys: str | list | None = None,
         is_predict: bool = False,
-    ) -> Union[dict[str, Any], Any]:
+    ) -> dict[str, Any] | Any:
         """
         평가 또는 예측 작업을 수행하는 내부 공통 메서드입니다.
 
@@ -83,7 +83,7 @@ class QuestionAnsweringTrainer(Trainer):
 
         if self.post_process_function is not None:
             preds = self.post_process_function(
-                examples, dataset, output.predictions, self.args,
+                self.args, examples, dataset, output.predictions,
             )
             return preds
         else:
@@ -91,9 +91,9 @@ class QuestionAnsweringTrainer(Trainer):
 
     def evaluate(
         self,
-        eval_dataset: Optional[datasets.Dataset] = None,
-        eval_examples: Optional[datasets.Dataset] = None,
-        ignore_keys: Optional[Union[str, list]] = None,
+        eval_dataset: datasets.Dataset | None = None,
+        eval_examples: datasets.Dataset | None = None,
+        ignore_keys: str | list | None = None,
     ) -> dict[str, Any]:
         """
         평가 작업을 수행하는 메서드입니다.
@@ -134,7 +134,7 @@ class QuestionAnsweringTrainer(Trainer):
         self,
         test_dataset: datasets.Dataset,
         test_examples: datasets.Dataset,
-        ignore_keys: Optional[Union[str, list]] = None,
+        ignore_keys: str | list | None = None,
     ) -> BatchEncoding:
         """
         예측 작업을 수행하는 메서드입니다.
