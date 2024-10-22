@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 from datasets import DatasetDict
 from transformers import EvalPrediction
-from reader.data_controller.postprocess_qa import postprocess_qa_predictions
+from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
 # TODO: DataProcessor에 BatchEncoding 형식 적용
 # from transformers import BatchEncoding
 
@@ -102,18 +102,21 @@ class DataPreProcessor(DataProcessor):
 
             return tokenized_examples
 
-        def prepare_validation_features(cls, examples):
-            tokenizer = cls.tokenizer
+        def prepare_validation_features(examples):
+            question_column_name = 'question' if 'question' in column_names else column_names[0]
+            context_column_name = 'context' if 'context' in column_names else column_names[1]
+
             pad_on_right = tokenizer.padding_side == 'right'
+
             tokenized_examples = tokenizer(
-                examples[cls.question_column_name if pad_on_right else cls.context_column_name],
-                examples[cls.context_column_name if pad_on_right else cls.question_column_name],
+                examples[question_column_name if pad_on_right else context_column_name],
+                examples[context_column_name if pad_on_right else question_column_name],
                 truncation='only_second' if pad_on_right else 'only_first',
-                max_length=cls.max_seq_length,
-                stride=cls.data_args.doc_stride,
+                max_length=data_args.max_seq_length,
+                stride=data_args.doc_stride,
                 return_overflowing_tokens=True,
                 return_offsets_mapping=True,
-                padding='max_length' if cls.data_args.pad_to_max_length else False,
+                padding='max_length' if data_args.pad_to_max_length else False,
             )
 
             sample_mapping = tokenized_examples.pop('overflow_to_sample_mapping')

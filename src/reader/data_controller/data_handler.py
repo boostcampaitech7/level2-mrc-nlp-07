@@ -23,10 +23,10 @@ class DataHandler():
             data_args.max_seq_length, tokenizer.model_max_length,
         )
 
-        self.data_args.output_dir = train_args.output_dir
-        self.data_args.do_predict = train_args.do_predict
-        self.data_args.do_eval = train_args.do_eval
-        self.data_args.do_train = train_args.do_train
+        self.data_args.output_dir = train_args.output_dir           # type: ignore[attr-defined]
+        self.data_args.do_predict = train_args.do_predict           # type: ignore[attr-defined]
+        self.data_args.do_eval = train_args.do_eval                 # type: ignore[attr-defined]
+        self.data_args.do_train = train_args.do_train               # type: ignore[attr-defined]
 
         self.datasets = load_from_disk(self.data_args.dataset_name)
 
