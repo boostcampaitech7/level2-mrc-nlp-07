@@ -17,12 +17,13 @@ class Reader:
         model_args: ModelArguments,
         data_args: DataTrainingArguments,
         training_args: TrainingArguments,
-        datasets: Dataset,
+        datasets: Dataset = None,
     ):
         self.logger = setup_logger(model_args.model_name_or_path)
         self.model_manager = HuggingFaceLoadManager(model_args)
+
         self.data_handler = DataHandler(
-            data_args=data_args,
+            data_args=data_args, model_args=model_args,
             tokenizer=self.model_manager.get_tokenizer(),
             preprocessor=DataPreProcessor,      # type: ignore
             postprocessor=DataPostProcessor,    # type: ignore

@@ -6,3 +6,4 @@ code/
 mrc/
 .DS_Store
 .venv/
+train_test.ipynb

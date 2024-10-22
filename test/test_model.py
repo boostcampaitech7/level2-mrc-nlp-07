@@ -118,10 +118,10 @@ def test_run_train(mock_model_args, mock_data_args, mock_training_args, mock_dat
     reader.load()
 
     with patch(
-        'src.reader.trainer_qa.QuestionAnsweringTrainer.train',
+        'src.reader.model.trainer_qa.QuestionAnsweringTrainer.train',
         return_value=MagicMock(metrics={'accuracy': 0.9}),
     ) as mock_train, \
-            patch('src.reader.trainer_qa.QuestionAnsweringTrainer.save_model') as mock_save_model, \
+            patch('src.reader.model.trainer_qa.QuestionAnsweringTrainer.save_model') as mock_save_model, \
             patch('src.reader.data_processor.DataPreProcessor.process', return_value=mock_datasets['train']):
 
         reader._run_training = MagicMock()  # 내부 메서드 호출 모킹
@@ -147,7 +147,7 @@ def test_run_predict(mock_model_args, mock_data_args, mock_training_args, mock_d
     reader.load()
 
     with patch(
-        'src.reader.trainer_qa.QuestionAnsweringTrainer.predict',
+        'src.reader.model.trainer_qa.QuestionAnsweringTrainer.predict',
         return_value={'predictions': 'test_predictions'},
     ) as mock_predict, \
             patch('src.reader.data_processor.DataPreProcessor.process', return_value=mock_datasets['validation']):
@@ -168,10 +168,10 @@ def test_save_results(mock_model_args, mock_data_args, mock_training_args, mock_
     )
 
     with patch('builtins.open', new_callable=MagicMock) as mock_open, \
-            patch('src.reader.trainer_qa.QuestionAnsweringTrainer.save_model'), \
-            patch('src.reader.trainer_qa.QuestionAnsweringTrainer.log_metrics'), \
-            patch('src.reader.trainer_qa.QuestionAnsweringTrainer.save_metrics'), \
-            patch('src.reader.trainer_qa.QuestionAnsweringTrainer.save_state'):
+            patch('src.reader.model.trainer_qa.QuestionAnsweringTrainer.save_model'), \
+            patch('src.reader.model.trainer_qa.QuestionAnsweringTrainer.log_metrics'), \
+            patch('src.reader.model.trainer_qa.QuestionAnsweringTrainer.save_metrics'), \
+            patch('src.reader.model.trainer_qa.QuestionAnsweringTrainer.save_state'):
 
         result = MagicMock(metrics={'accuracy': 0.9})
         reader._save_results(MagicMock(), result, mock_datasets['train'], 'train')

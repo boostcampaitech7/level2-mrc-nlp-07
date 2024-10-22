@@ -3,19 +3,19 @@ from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
 
-from datasets import Dataset
+from datasets import DatasetDict
 from transformers import EvalPrediction
 from .postprocess_qa import postprocess_qa_predictions
-
 # TODO: DataProcessor에 BatchEncoding 형식 적용
 # from transformers import BatchEncoding
+
 
 class DataProcessor(ABC):
     name = 'DataProc'
 
     @classmethod
     @abstractmethod
-    def process(cls, type, tokenizer, data_args, *datasets):
+    def process(cls, tokenizer, data_args, *datasets):
         pass
 
 
@@ -23,7 +23,7 @@ class DataPreProcessor(DataProcessor):
     name = 'pre'
 
     @classmethod
-    def process(cls, type, tokenizer, data_args, *args) -> dict:
+    def process(cls, tokenizer, data_args, *datasets: DatasetDict) -> DatasetDict:
         """데이터 전처리
 
         Args:
@@ -36,9 +36,9 @@ class DataPreProcessor(DataProcessor):
             processed dataset
         """
         print('Pre-processing...')
-        datasets: Dataset = args[0]
+        dataset = datasets[0]
 
-        column_names = datasets.column_names
+        column_names = dataset.column_names
 
         def prepare_train_features(examples):
             question_column_name = 'question' if 'question' in column_names else column_names[0]
@@ -132,14 +132,13 @@ class DataPreProcessor(DataProcessor):
                 ]
             return tokenized_examples
 
-        dataset = datasets.map(
-            prepare_train_features if type == 'train' else prepare_validation_features,
+        dataset = dataset.map(
+            prepare_train_features if data_args.do_train else prepare_validation_features,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
-
         return dataset
 
 
@@ -147,7 +146,7 @@ class DataPostProcessor(DataProcessor):
     name = 'post'
 
     @classmethod
-    def process(cls, type, tokenizer, data_args, *datasets):
+    def process(cls, tokenizer, data_args, *datasets):
         # Post-processing: start logits과 end logits을 original context의 정답과 match시킵니다.
         predictions = postprocess_qa_predictions(
             examples=datasets[0],
@@ -160,10 +159,10 @@ class DataPostProcessor(DataProcessor):
         formatted_predictions = [
             {'id': k, 'prediction_text': v} for k, v in predictions.items()
         ]
-        if type == 'predict':
+        if data_args.do_predict:
             return formatted_predictions
 
-        elif type == 'eval':
+        elif data_args.do_eval:
             answer_column_name = (
                 'answers' if 'answers' in formatted_predictions.column_names else formatted_predictions.column_names[2]
             )
@@ -174,3 +173,19 @@ class DataPostProcessor(DataProcessor):
             return EvalPrediction(
                 predictions=formatted_predictions, label_ids=references,
             )
+
+
+'''if __name__ == '__main__':
+    data = BatchEncoding(
+        {
+            'input_ids': [101, 102, 103],
+            'attention_mask': [1, 1, 1],
+        },
+    )
+
+    preprocessed_data = DataPreProcessor.process(data)
+    print(preprocessed_data)
+
+    postprocessed_data = DataPostProcessor.process(data)
+    print(postprocessed_data)
+'''

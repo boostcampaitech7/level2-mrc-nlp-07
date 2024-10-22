@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 from typing import Callable
-from .data_processor import DataProcessor
+
 from datasets import load_from_disk
-from src import DataTrainingArguments
 from transformers import AutoTokenizer
+from transformers import TrainingArguments
+
+from src.reader.data_controller.data_processor import DataProcessor
+from src import DataTrainingArguments
 
 
 class DataHandler():
-    def __init__(
-        self,
-        data_args: DataTrainingArguments,
-        tokenizer: AutoTokenizer,
-        postprocessor: DataProcessor,
-        preprocessor: DataProcessor,
-    ) -> None:
+    def __init__(self, data_args: DataTrainingArguments, model_args: TrainingArguments, tokenizer: AutoTokenizer, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
         """DataHandler 초기화 설정.
         Args:
             data_args (DataTrainingArguments): DataTrainingArguments 형식
@@ -25,6 +22,11 @@ class DataHandler():
         self.max_seq_length = min(
             data_args.max_seq_length, tokenizer.model_max_length,
         )
+
+        self.data_args.output_dir = model_args.output_dir
+        self.data_args.do_predict = model_args.do_predict
+        self.data_args.do_eval = model_args.do_eval
+        self.data_args.do_train = model_args.do_train
 
         self.datasets = load_from_disk(self.data_args.dataset_name)
 
@@ -43,7 +45,7 @@ class DataHandler():
         processor_func = self.processors[type].process
         return processor_func
 
-    def process_data(self, proc: str, practice, data_type: str):
+    def process_data(self, proc: str, data_type: str):
         """데이터를 처리함
 
         Args:
@@ -70,6 +72,6 @@ class DataHandler():
         if type not in self.datasets:
             raise ValueError('--do_'+type+' requires a '+type+' dataset')
 
-        datasets = self.process_data('pre', None, type)
+        datasets = self.process_data('pre', type)
 
         return datasets
