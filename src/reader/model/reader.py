@@ -2,13 +2,18 @@ from __future__ import annotations
 
 from datasets import Dataset
 from evaluate import load
+from reader.data_controller.data_handler import DataHandler
+from reader.data_controller.data_processor import DataPostProcessor
+from reader.data_controller.data_processor import DataPreProcessor
+from reader.model.huggingface_manager import HuggingFaceLoadManager
+from reader.model.result_saver import ResultSaver
+from reader.model.trainer_manager import TrainerManager
+from transformers import EvalPrediction
 from transformers import TrainingArguments
-
-from src import DataTrainingArguments, ModelArguments
-from src.utils.log.logger import setup_logger
-from src import validate_flags
-from src import DataHandler, DataPreProcessor, DataPostProcessor
-from src import HuggingFaceLoadManager, ResultSaver, TrainerManager
+from utils.argument_validator import validate_flags
+from utils.arguments import DataTrainingArguments
+from utils.arguments import ModelArguments
+from utils.log.logger import setup_logger
 
 
 class Reader:
@@ -23,14 +28,17 @@ class Reader:
         self.model_manager = HuggingFaceLoadManager(model_args)
 
         self.data_handler = DataHandler(
-            data_args=data_args, model_args=model_args,
+            data_args=data_args, train_args=training_args,
             tokenizer=self.model_manager.get_tokenizer(),
-            preprocessor=DataPreProcessor,      # type: ignore
-            postprocessor=DataPostProcessor,    # type: ignore
+
+            preprocessor=DataPreProcessor,                          # type: ignore[arg-type]
+            postprocessor=DataPostProcessor,                        # type: ignore[arg-type]
+
         )
         self.training_args = training_args
         self.datasets = datasets
         self.result_saver = ResultSaver(training_args, self.logger)
+        self.metric = load('squad')     # TODO: 리터럴 스트링 상수에서 뺄 것
 
     def run(self):
         """Reader 실행 함수."""
@@ -40,14 +48,14 @@ class Reader:
         # 데이터 전처리
         train_dataset = self.data_handler.load_data('train') if self.training_args.do_train else None
         eval_dataset = self.data_handler.load_data('validation') if self.training_args.do_eval else None
-        test_dataset = self.data_handler.load_data('test') if self.training_args.do_predict else None
+        test_dataset = self.data_handler.load_data('validation') if self.training_args.do_predict else None
 
         # TrainerManager 생성 및 실행
         trainer_manager = TrainerManager(
             model=self.model_manager.get_model(),
             tokenizer=self.model_manager.get_tokenizer(),
             training_args=self.training_args,
-            compute_metrics=lambda p: load('squad').compute(predictions=p.predictions, references=p.label_ids),
+            compute_metrics=self.compute_metrics,
         )
 
         trainer = trainer_manager.create_trainer(train_dataset, eval_dataset)
@@ -63,3 +71,6 @@ class Reader:
         if self.training_args.do_predict:
             predictions = trainer_manager.run_prediction(trainer, test_dataset, eval_dataset)
             self.result_saver.save_predictions(predictions)
+
+    def compute_metrics(self, p: EvalPrediction):
+        return self.metric.compute(predictions=p.predictions, references=p.label_ids)

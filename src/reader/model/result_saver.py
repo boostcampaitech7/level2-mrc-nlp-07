@@ -7,7 +7,7 @@ from typing import Any
 from datasets import Dataset
 from transformers import TrainingArguments
 
-from src import QuestionAnsweringTrainer
+from reader.model.trainer_qa import QuestionAnsweringTrainer
 
 
 class ResultSaver:

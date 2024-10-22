@@ -5,13 +5,13 @@ from typing import Union
 
 from transformers import BatchEncoding
 from transformers import is_datasets_available
-from transformers import is_torch_tpu_available
+from transformers import is_torch_xla_available
 from transformers import Trainer
 
 if is_datasets_available():
     import datasets
 
-if is_torch_tpu_available():
+if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
     import torch_xla.debug.metrics as met
 

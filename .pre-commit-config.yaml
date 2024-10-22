@@ -42,7 +42,7 @@ repos:
     hooks:
     -   id: mypy
         additional_dependencies: [types-pyyaml]
-        exclude: ^testing/resources/
+        exclude: ^src/reader/data_controller/data_handler.py
         args:
             - --ignore-missing-imports
             - --no-strict-optional
