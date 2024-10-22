@@ -25,6 +25,7 @@ class SparseRetrieval:
         tokenized_docs = None,
         k1: float = 1.1,
         b: float = 0.5,
+
     ) -> NoReturn:
 
         """
@@ -98,6 +99,7 @@ class SparseRetrieval:
             print(f"Building {self.mode} embedding...")
             self._calculate_embeddings()
 
+
         print(f"{self.mode} embedding shape:", self.p_embedding.shape)
         
     def _calculate_embeddings(self):
@@ -115,6 +117,7 @@ class SparseRetrieval:
         save_npz(self.emd_path, self.p_embedding)
         self.sparse_embed.save(self.sparse_path)
         print("New embeddings calculated and saved.")
+
 
     # 유사도 검색을 통한 비슷한 문서 검색
     def retrieve(
@@ -243,6 +246,7 @@ class SparseRetrieval:
         ), "query_vecs가 제대로 변환되지않음."
 
         print(query_vecs.shape, self.p_embedding.shape)
+        print(type(query_vecs), type(self.p_embedding))
         # 유사도 계산
         
         result = query_vecs @ self.p_embedding.T  # 행렬 곱 연산 (질문수, 임베딩 차원) x (임베딩 차원, 문서수)

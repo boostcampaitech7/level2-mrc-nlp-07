@@ -1,17 +1,14 @@
+from __future__ import annotations
+
 from datasets import Dataset
 from evaluate import load
 from transformers import TrainingArguments
 
-from src.reader.data_handler import DataHandler
-from src.reader.data_processor import DataPostProcessor
-from src.reader.data_processor import DataPreProcessor
-from src.reader.log.logger import setup_logger
-from src.reader.model.huggingface_manager import HuggingFaceLoadManager
-from src.reader.model.result_saver import ResultSaver
-from src.reader.model.trainer_manager import TrainerManager
-from src.reader.utils.argument_validator import validate_flags
-from src.reader.utils.arguments import DataTrainingArguments
-from src.reader.utils.arguments import ModelArguments
+from src import DataTrainingArguments, ModelArguments
+from src.utils.log.logger import setup_logger
+from src import validate_flags
+from src import DataHandler, DataPreProcessor, DataPostProcessor
+from src import HuggingFaceLoadManager, ResultSaver, TrainerManager
 
 
 class Reader:
@@ -20,15 +17,16 @@ class Reader:
         model_args: ModelArguments,
         data_args: DataTrainingArguments,
         training_args: TrainingArguments,
-        datasets: Dataset,
+        datasets: Dataset = None,
     ):
         self.logger = setup_logger(model_args.model_name_or_path)
         self.model_manager = HuggingFaceLoadManager(model_args)
+
         self.data_handler = DataHandler(
-            data_args=data_args,
+            data_args=data_args, model_args=model_args,
             tokenizer=self.model_manager.get_tokenizer(),
-            preprocessor=DataPreProcessor,
-            postprocessor=DataPostProcessor,
+            preprocessor=DataPreProcessor,      # type: ignore
+            postprocessor=DataPostProcessor,    # type: ignore
         )
         self.training_args = training_args
         self.datasets = datasets

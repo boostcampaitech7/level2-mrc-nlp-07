@@ -8,3 +8,4 @@ konlpy==0.6.0
 bertviz==1.4.0
 psutil==5.9.0
 GPUtil==1.4.0
+pytest==8.3.3

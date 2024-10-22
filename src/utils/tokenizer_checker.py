@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import os
 from typing import Any
-from typing import Optional
 
 from datasets import DatasetDict
 from transformers import PreTrainedTokenizerFast
 from transformers import TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 
-from src.reader.log.logger import setup_logger
-from src.reader.utils.arguments import DataTrainingArguments
+from .log.logger import setup_logger
+from src import DataTrainingArguments
 
 
 def check_no_error(
@@ -27,7 +28,7 @@ def check_no_error(
     return last_checkpoint, max_seq_length
 
 
-def _find_last_checkpoint(training_args: TrainingArguments) -> Optional[str]:
+def _find_last_checkpoint(training_args: TrainingArguments) -> str | None:
     if (
         os.path.isdir(training_args.output_dir)
         and training_args.do_train
