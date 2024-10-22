@@ -16,8 +16,8 @@ class SparseEmbedding:
         max_features:int=50000,
         mode: str = 'tfidf', 
         tokenized_docs:List[str] = None,
-        k1: float = 1.5,
-        b: float = 0.75,
+        k1: float = 1.1,
+        b: float = 0.5,
         ):
         """
         Args:
