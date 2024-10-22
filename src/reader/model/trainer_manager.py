@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import Any
 from typing import Callable
-from typing import Optional
 
 from datasets import Dataset
 from transformers import AutoModelForQuestionAnswering
@@ -36,8 +37,8 @@ class TrainerManager:
 
     def create_trainer(
         self,
-        train_dataset: Optional[Dataset] = None,
-        eval_dataset: Optional[Dataset] = None,
+        train_dataset: Dataset | None = None,
+        eval_dataset: Dataset | None = None,
     ) -> QuestionAnsweringTrainer:
         """
         모델 학습 및 평가를 위한 Trainer를 생성합니다.
@@ -78,7 +79,7 @@ class TrainerManager:
         Returns:
             Any: 학습 결과.
         """
-        checkpoint = self.training_args.last_checkpoint or None
+        checkpoint = self.training_args.resume_from_checkpoint or None
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         return train_result
 
