@@ -14,6 +14,7 @@ def main():
     print("Output directory:", training_args.output_dir)
 
     reader_model = Reader(model_args, data_args, training_args)
+    reader_model.run()
 
 
 if __name__ == '__main__':
