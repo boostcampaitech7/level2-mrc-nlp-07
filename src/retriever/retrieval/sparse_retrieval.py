@@ -90,14 +90,14 @@ class SparseRetrieval:
                 - 'my_tfidf': 직접 구현한 TF-IDF
                 - 'bm25': 직접 구현한 BM25
         """
-        if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
-            print(f"Loading {self.mode} embedding...")
-            self.p_embedding = load_npz(self.emd_path)
-            self.sparse_embed = SparseEmbedding.load(self.sparse_path)
-            print("Loading completed.")
-        else:
-            print(f"Building {self.mode} embedding...")
-            self._calculate_embeddings()
+        # if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
+        #     print(f"Loading {self.mode} embedding...")
+        #     self.p_embedding = load_npz(self.emd_path)
+        #     self.sparse_embed = SparseEmbedding.load(self.sparse_path)
+        #     print("Loading completed.")
+        # else:
+        print(f"Building {self.mode} embedding...")
+        self._calculate_embeddings()
 
 
         print(f"{self.mode} embedding shape:", self.p_embedding.shape)
@@ -114,9 +114,9 @@ class SparseRetrieval:
             b = self.b,
         )
         self.p_embedding = self.sparse_embed.get_embedding()
-        save_npz(self.emd_path, self.p_embedding)
-        self.sparse_embed.save(self.sparse_path)
-        print("New embeddings calculated and saved.")
+        # save_npz(self.emd_path, self.p_embedding)
+        # self.sparse_embed.save(self.sparse_path)
+        # print("New embeddings calculated and saved.")
 
 
     # 유사도 검색을 통한 비슷한 문서 검색
@@ -281,8 +281,8 @@ class SparseRetrieval:
             "linear retrieval",
             df["linear_score"].sum() / len(df)
         )
-        temp = df['retrieval_context']
+        df['length'] = df['retrieval_context'].apply(lambda x: len(x))
         print(
             "docs_len",
-            len(temp)
+            np.mean(df['length'])
         )
