@@ -6,8 +6,8 @@ from datasets import load_from_disk
 from transformers import AutoTokenizer
 from transformers import TrainingArguments
 
-from src.reader.data_controller.data_processor import DataProcessor
 from src import DataTrainingArguments
+from src.reader.data_controller.data_processor import DataProcessor
 
 
 class DataHandler():
@@ -23,10 +23,14 @@ class DataHandler():
             data_args.max_seq_length, tokenizer.model_max_length,
         )
 
-        self.data_args.output_dir = model_args.output_dir
-        self.data_args.do_predict = model_args.do_predict
-        self.data_args.do_eval = model_args.do_eval
-        self.data_args.do_train = model_args.do_train
+        if not hasattr(self.data_args, 'output_dir'):
+            self.data_args.output_dir = model_args.output_dir
+        if not hasattr(self.data_args, 'do_predict'):
+            self.data_args.do_predict = model_args.do_predict
+        if not hasattr(self.data_args, 'do_eval'):
+            self.data_args.do_eval = model_args.do_eval
+        if not hasattr(self.data_args, 'do_train'):
+            self.data_args.do_train = model_args.do_train
 
         self.datasets = load_from_disk(self.data_args.dataset_name)
 
