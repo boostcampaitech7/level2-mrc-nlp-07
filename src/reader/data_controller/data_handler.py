@@ -7,7 +7,7 @@ from transformers import AutoTokenizer
 from transformers import TrainingArguments
 
 from src.reader.data_controller.data_processor import DataProcessor
-from src.reader.utils.arguments import DataTrainingArguments
+from src import DataTrainingArguments
 
 
 class DataHandler():
