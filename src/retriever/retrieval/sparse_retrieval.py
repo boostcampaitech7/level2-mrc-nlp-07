@@ -21,7 +21,6 @@ from src.retriever.score.ranking import calculate_linear_score
 from src.retriever.score.ranking import calculate_reverse_rank_score
 from src.retriever.score.ranking import check_original_in_context
 from src.retriever.similarity.similarity import ComputeSimilarity
-from src.utils.timer import timer
 
 
 class SparseRetrieval:
@@ -101,14 +100,14 @@ class SparseRetrieval:
                 - 'my_tfidf': 직접 구현한 TF-IDF
                 - 'bm25': 직접 구현한 BM25
         """
-        if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
-            print(f'Loading {self.mode} embedding...')
-            self.p_embedding = load_npz(self.emd_path)
-            self.sparse_embed = SparseEmbedding.load(self.sparse_path)
-            print('Loading completed.')
-        else:
-            print(f'Building {self.mode} embedding...')
-            self._calculate_embeddings()
+        # if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
+        #     print(f"Loading {self.mode} embedding...")
+        #     self.p_embedding = load_npz(self.emd_path)
+        #     self.sparse_embed = SparseEmbedding.load(self.sparse_path)
+        #     print("Loading completed.")
+        # else:
+        print(f'Building {self.mode} embedding...')
+        self._calculate_embeddings()
 
         print(f'{self.mode} embedding shape:', self.p_embedding.shape)
 
@@ -298,4 +297,9 @@ class SparseRetrieval:
         print(
             'docs_len',
             len(temp),
+        )
+        df['length'] = df['retrieval_context'].apply(lambda x: len(x))
+        print(
+            'docs_len',
+            np.mean(df['length']),
         )
