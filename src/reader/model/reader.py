@@ -79,7 +79,7 @@ class Reader:
             self.logger.info(f'Evaluation results: {eval_metrics}')
 
         if training_args.do_predict:
-            predictions = trainer_manager.run_prediction(trainer, test_dataset, test_dataset)
+            predictions = trainer_manager.run_prediction(trainer, test_dataset)
             self.result_saver.save_predictions(predictions)
 
     def compute_metrics(self, p: EvalPrediction):

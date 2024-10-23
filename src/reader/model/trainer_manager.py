@@ -116,7 +116,6 @@ class TrainerManager:
         self,
         trainer: QuestionAnsweringTrainer,
         test_dataset: Dataset,
-        test_examples: Dataset,
     ) -> BatchEncoding:
         """
         모델 예측을 실행합니다.
@@ -128,4 +127,4 @@ class TrainerManager:
         Returns:
             Any: 예측 결과.
         """
-        return trainer.predict(test_dataset=test_dataset, test_examples=test_examples)
+        return trainer.predict(test_dataset=test_dataset)

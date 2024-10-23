@@ -133,7 +133,7 @@ class QuestionAnsweringTrainer(Trainer):
     def predict(
         self,
         test_dataset: datasets.Dataset,
-        test_examples: datasets.Dataset,
+        test_examples: datasets.Dataset | None = None,
         ignore_keys: str | list | None = None,
     ) -> BatchEncoding:
         """
@@ -147,6 +147,8 @@ class QuestionAnsweringTrainer(Trainer):
         Returns:
             Union[Dict[str, Any], Any]: 후처리된 예측값 또는 예측 결과.
         """
+        test_examples = self.eval_examples if test_examples is None else test_examples
+
         return self._shared_evaluate_or_predict(
             test_dataset, test_examples, description='Prediction', ignore_keys=ignore_keys, is_predict=True,
         )
