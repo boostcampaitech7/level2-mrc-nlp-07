@@ -4,7 +4,6 @@ from typing import Any
 from typing import Callable
 
 from datasets import Dataset
-from reader.model.trainer_qa import QuestionAnsweringTrainer
 from transformers import AutoModelForQuestionAnswering
 from transformers import AutoTokenizer
 from transformers import BatchEncoding
@@ -12,6 +11,7 @@ from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments
 
 from src.reader.data_controller.data_processor import DataPostProcessor
+from src.reader.model.trainer_qa import QuestionAnsweringTrainer
 from src.utils.arguments import DataTrainingArguments
 # TODO 종속성 문제 존재, 추후 수정 필요
 

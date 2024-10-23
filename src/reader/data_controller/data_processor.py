@@ -144,6 +144,7 @@ class DataPreProcessor(DataProcessor):
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
+        print('preprocessed '+str(dataset))
         return dataset
 
 

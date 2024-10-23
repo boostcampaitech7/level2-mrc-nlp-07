@@ -24,7 +24,7 @@ import os
 import numpy as np
 from tqdm.auto import tqdm
 
-from utils.log.logger import setup_logger
+from src.utils.log.logger import setup_logger
 
 
 def postprocess_qa_predictions(
@@ -82,6 +82,7 @@ def postprocess_qa_predictions(
     ), f'Got {len(predictions[0])} predictions and {len(features)} features.'
 
     # example과 mapping되는 feature 생성
+    print('postprocess_qa '+str(examples))
     example_id_to_index = {k: i for i, k in enumerate(examples['id'])}
     features_per_example = collections.defaultdict(list)
     for i, feature in enumerate(features):
