@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 import random
 import torch
+import json
 import torch.nn.functional as F
 import pandas as pd
 from transformers import (BertModel,
@@ -69,6 +70,15 @@ class DenseRetrieval:
         
         self.p_encoder = BertEncoder.from_pretrained(self.model_name_or_path)
         self.q_encoder = BertEncoder.from_pretrained(self.model_name_or_path)
+        self.docs = self._initialize_from_wiki(context_path="/data/ephemeral/home/level2-mrc-nlp-07/data/wikipedia_documents.json")
+
+    def _initialize_from_wiki(self, context_path: str):
+        with open(context_path, "r", encoding="utf-8") as f:
+            wiki = json.load(f)
+
+        docs = list(dict.fromkeys([v["text"] for v in wiki.values()]))
+        print(f"Lengths of unique contexts : {len(docs)}")
+        return docs
         
     def _load_full_data(
         self,
@@ -339,7 +349,15 @@ class DenseRetrieval:
         Returns:
             pd.DataFrame: 쿼리와 검색된 문서를 포함하는 DataFrame.
         """
-        valid_corpus = list(set([example['context'] for example in queries_or_dataset]))
+        valid_corpus = self.docs
+        print(len(valid_corpus))
+        with timer("tokenizing valid p_seq and load dataloader"):
+            valid_seqs = self.tokenizer(valid_corpus, padding="max_length", truncation=True, return_tensors='pt')
+            passage_dataset = TensorDataset(
+                valid_seqs['input_ids'], valid_seqs['attention_mask'], valid_seqs['token_type_ids']
+            )
+            passage_dataloader = DataLoader(passage_dataset, batch_size=2)
+
         with torch.no_grad():
             self.p_encoder.eval()
             self.q_encoder.eval()
@@ -356,25 +374,37 @@ class DenseRetrieval:
                 queries, padding="max_length", truncation=True, return_tensors='pt'
             ).to('cuda')
             q_emb = self.q_encoder(**q_seqs).to('cpu')  # (num_queries, emb_dim)
-
+            print(f'q_emb.shape: {q_emb.shape}')
             # Passage 임베딩 계산
             p_embs = []
-            for p in valid_corpus:
-                p_seq = self.tokenizer(
-                    p, padding="max_length", truncation=True, return_tensors='pt'
-                ).to('cuda')
-                p_emb = self.p_encoder(**p_seq).to('cpu').numpy()
-                p_embs.append(p_emb)
+            for batch in passage_dataloader:
 
+                batch = tuple(t.to('cuda') for t in batch)
+                p_inputs = {
+                    'input_ids': batch[0],
+                    'attention_mask': batch[1],
+                    'token_type_ids': batch[2]
+                }
+                p_emb = self.p_encoder(**p_inputs).to('cpu')
+                p_embs.append(p_emb)
+                
+        p_embs = torch.cat(p_embs, dim=0)        
+        print(f'p_embs.shape: {p_embs.shape}')
+        dot_prod_scores = torch.matmul(q_emb, torch.transpose(p_embs, 0, 1))
+        print(f'dot_prod_scores.shape: {dot_prod_scores.shape}')
+        
+        doc_scores, doc_indices = torch.topk(dot_prod_scores, topk, dim=1)
+        """
             # Passage 임베딩 배열로 변환
             p_embs = torch.Tensor(np.array(p_embs)).squeeze()  # (num_passage, emb_dim)
-
+            print(f'p_embs.shape: {p_embs.shape}')
             # Dot-product score 계산
             dot_prod_scores = q_emb @ p_embs.T  # (num_queries, num_passage)
-
+            print(f'dot_prod_scores.shape: {dot_prod_scores.shape}')
             # 내림차순으로 정렬된 상위 K passage 인덱스와 점수
             doc_scores, doc_indices = torch.topk(dot_prod_scores, topk, dim=1)
-
+        """
+            
         # 결과를 DataFrame 형태로 정리
         total = []
         for idx, query in enumerate(queries):
@@ -430,10 +460,10 @@ if __name__ == "__main__":
         help="",
         default="/data/ephemeral/home/level2-mrc-nlp-07/data/train_dataset")
     parser.add_argument("--num_neg", 
-        metavar=10, 
+        metavar=3, 
         type=int, 
         help="",
-        default=10
+        default=3
         )
     parser.add_argument("--use_in_batch_negative_sampling", 
         metavar=False, 
@@ -468,5 +498,5 @@ if __name__ == "__main__":
         df = denseRetrieval.retrieve(queries,topk=10)
         denseRetrieval.get_score(df)
         
-        #df.to_csv('output_vanilla_epoch_5.csv', index=False, encoding='utf-8-sig')
+        df.to_csv('output.csv', index=False, encoding='utf-8-sig')
     
