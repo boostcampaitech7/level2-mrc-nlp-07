@@ -6,3 +6,5 @@ numpy=1.26.4
 pandas=2.2.3
 pyarrow=17.0.0
 seaborn=0.13.2
+sentencepiece=0.2.0
+transformers=4.45.2
