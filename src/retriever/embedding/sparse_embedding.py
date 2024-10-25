@@ -15,18 +15,18 @@ class SparseEmbedding:
         ngram_range:tuple=(1,2), 
         max_features:int=50000,
         mode: str = 'tfidf', 
-        tokenized_docs:List[str] = None,
         k1: float = 1.1,
         b: float = 0.5,
         ):
         """
         Args:
-            docs (List[str]): _description_
-            tokenizer (_type_, optional): _description_. Defaults to None.
-            ngram_range (tuple, optional): _description_. Defaults to (1,2).
-            max_features (int, optional): _description_. Defaults to 50000.
-            mode (str, optional): _description_. Defaults to 'tfidf'.
-            tokenized_docs (_type_, optional): _description_. Defaults to None.
+            docs (List[str]): 문서 리스트
+            tokenizer (_type_, optional): 토크나이저 함수. Defaults to None이면 한국어 명사 추출기 사용.
+            ngram_range (tuple, optional): n-gram 범위. Defaults to (1,2).
+            max_features (int, optional): 최대 특성 개수. Defaults to 50000.
+            mode (str, optional): 임베딩 모드. Defaults to 'tfidf'.
+            k1 (float, optional): BM25 파라미터. Defaults to 1.1.
+            b (float, optional): BM25 파라미터. Defaults to 0.5.
         """
         self.docs = docs
         self.tokenizer = tokenizer if tokenizer else lambda x: x.split()
@@ -40,6 +40,7 @@ class SparseEmbedding:
         if docs is not None:
             print('Start Initializing...')
             self.tokenized_docs = [self.tokenizer(doc) for doc in tqdm(docs, desc="Tokenizing...")]
+            print(f'tokenized_docs : {self.tokenized_docs[418][:100]}')
             print('Generating n-grams and building vocabulary...')
             self._generate_ngrams_and_update_vocab()
             self.initialize_embedding_function()
@@ -96,7 +97,7 @@ class SparseEmbedding:
     def _generate_ngrams_and_update_vocab(self):
         new_vocab = Counter()
         new_doc_freqs = Counter()
-        
+    
         for doc in tqdm(self.tokenized_docs, desc="Generating n-grams"):
             doc_ngrams = self._get_ngrams(doc)
             new_vocab.update(doc_ngrams)
@@ -108,6 +109,10 @@ class SparseEmbedding:
         
         self.vocab = {word: idx for idx, word in enumerate(new_vocab)}
         self.doc_freqs = {word: new_doc_freqs[word] for word in self.vocab}
+        print('Vocab size')
+        print(len(new_vocab))
+        sorted_dict = dict(sorted(new_vocab.items(), key=lambda x: x[1], reverse=True)[:20])
+        print(sorted_dict)
         
     def _get_ngrams(self, tokens): #(1,2)
         n_grams = []
