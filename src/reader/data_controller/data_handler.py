@@ -10,6 +10,7 @@ from transformers import TrainingArguments
 
 from src.reader.data_controller.data_processor import DataProcessor
 from src.utils.arguments import DataTrainingArguments
+from src.utils.constants import key_names
 
 
 class DataHandler():
@@ -35,7 +36,10 @@ class DataHandler():
         else:
             self.datasets = load_from_disk(data_args.dataset_name)
 
-        self.processors = {'pre': preprocessor, 'pos': postprocessor}
+        self.processors = {
+            key_names.PREPROCESSOR: preprocessor,
+            key_names.POSTPROCESSOR: postprocessor,
+        }
         # TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
 
     def process_func(self, type: str) -> Callable:
