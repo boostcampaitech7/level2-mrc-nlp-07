@@ -307,3 +307,36 @@ class SparseRetrieval:
             df["linear_score"].sum() / len(df)
         )
         #df['length'] = df['retrieval_context'].apply(lambda x: len(x))
+
+        
+    def compute_l2_distance(query_vec, passage_vec) -> np.ndarray:
+        """ 
+        Arguments:
+            query_vec:
+                embedding된 query vector 입니다.
+
+            passage_vec:
+                embedding된 passage vector 입니다.
+
+        Summary:
+            query vector와 passage vector를 input으로 받고, L2 거리를 계산해주는 함수입니다.
+        """
+
+        # dense matrix로 변경
+        if not isinstance(query_vec, np.ndarray):
+            query_vec = query_vec.toarray()
+        if not isinstance(passage_vec, np.ndarray):
+            passage_vec = passage_vec.toarray()
+
+        # 결과값 저장을 위한 빈 리스트 생성
+        num_queries = query_vec.shape[0]
+        num_passages = passage_vec.shape[0]
+        l2_distances = np.zeros((num_queries, num_passages))
+
+        for i in tqdm(range(num_queries), desc="Computing L2 distances"):
+            # i번째 쿼리와 모든 passage 간의 L2 거리를 계산하고 저장
+            l2_distances[i] = cdist(query_vec[i:i+1], passage_vec, metric='euclidean').flatten()
+            print(f"L2 Distance: {l2_distances[i]}")
+
+        print(f"L2_distances shape: ")
+        return l2_distances
