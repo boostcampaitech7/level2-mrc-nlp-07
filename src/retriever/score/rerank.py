@@ -12,7 +12,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
-from score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
+from src.retriever.score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
 from utils.timer import timer
 
 torch.manual_seed(2023)
