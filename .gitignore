@@ -7,3 +7,9 @@ mrc/
 .DS_Store
 .venv/
 train_test.ipynb
+outputs/
+models/
+EDA/
+.idea/
+*.xml
+*.iml

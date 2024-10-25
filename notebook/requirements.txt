@@ -1,0 +1,10 @@
+ipykernel=6.29.5
+langchain-ollama=0.2.0
+langchain=0.3.4
+matplotlib=3.9.2
+numpy=1.26.4
+pandas=2.2.3
+pyarrow=17.0.0
+seaborn=0.13.2
+sentencepiece=0.2.0
+transformers=4.45.2

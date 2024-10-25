@@ -1,56 +1,71 @@
 from __future__ import annotations
 
-from bertviz import head_view
 import os
+
+from bertviz import head_view
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, utils
 
 
-class BERTMRCMonitor:
-    def __init__(self, model_name='kykim/bert-kor-base'):
-        utils.logging.set_verbosity_error()  # Suppress standard warnings
+class AttentionVisualizer:
+    """Attention 시각화를 위한 클래스."""
+    def __init__(self, model_name: str):
+        utils.logging.set_verbosity_error()  # 경고 메시지 억제
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_attentions=True)
 
     def encode_input(self, question: str, paragraph: str):
         """
-        Tokenize and encode the question and paragraph into the format expected by BERT.
+        질문과 단락을 토큰화하여 BERT가 기대하는 형식으로 인코딩합니다.
         """
         inputs = self.tokenizer.encode_plus(
             question,
             paragraph,
-            add_special_tokens=True,  # Adds [CLS] and [SEP]
-            return_tensors='pt',       # Returns PyTorch tensors
+            add_special_tokens=True,  # [CLS]와 [SEP] 추가
+            return_tensors='pt',      # PyTorch 텐서 반환
         )
         return inputs
 
     def get_attention(self, inputs):
         """
-        Pass the inputs through the model to obtain attention weights.
+        모델에 입력을 전달하여 attention 가중치를 얻습니다.
         """
         outputs = self.model(**inputs)
-        return outputs[-1]  # Attention weights are in the last element when output_attentions=True
+        return outputs[-1]  # attention 가중치는 출력의 마지막 요소에 있습니다.
 
-    def generate_head_view(self, attention, tokens, output_path):
+
+class HeadViewGenerator:
+    """Attention 헤드 뷰를 생성하는 클래스."""
+    def __init__(self, output_path: str):
+        self.output_path = output_path
+
+    def generate_head_view(self, attention, tokens):
         """
-        Use BERTViz's head_view to generate a visual representation of attention heads.
+        BERTViz의 head_view를 사용하여 attention heads의 시각적 표현을 생성합니다.
         """
         html_head_view = head_view(attention, tokens, html_action='return')
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        with open(output_path, 'w') as file:
+        os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
+        with open(self.output_path, 'w') as file:
             file.write(html_head_view.data)
-        print(f'Head view saved to {output_path}')
+        print(f'Head view saved to {self.output_path}')
 
-    def monitor(self, question, paragraph, output_path='./head_view.html'):
+
+class BERTMRCMonitor:
+    """BERT 모델을 사용하여 MRC를 모니터링하는 클래스."""
+    def __init__(self, model_name='kykim/bert-kor-base'):
+        self.attention_visualizer = AttentionVisualizer(model_name)
+        self.head_view_generator = HeadViewGenerator(output_path='./head_view.html')
+
+    def monitor(self, question: str, paragraph: str):
         """
-        Main method to process a question and paragraph, get the attention, and generate the head view.
+        질문과 단락을 처리하고 attention을 얻고 헤드 뷰를 생성하는 메인 메서드입니다.
         """
         if not question or not paragraph:
             raise ValueError("질문과 단락은 비어있을 수 없습니다.")
-        
-        inputs = self.encode_input(question, paragraph)
-        attention = self.get_attention(inputs)
-        tokens = self.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
-        self.generate_head_view(attention, tokens, output_path)
+
+        inputs = self.attention_visualizer.encode_input(question, paragraph)
+        attention = self.attention_visualizer.get_attention(inputs)
+        tokens = self.attention_visualizer.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+        self.head_view_generator.generate_head_view(attention, tokens)
 
 
 # MonitoringTool 사용 예제

@@ -2,16 +2,19 @@ from __future__ import annotations
 
 from typing import Callable
 
+from datasets import Dataset
+from datasets import DatasetDict
 from datasets import load_from_disk
 from transformers import AutoTokenizer
 from transformers import TrainingArguments
 
 from src.reader.data_controller.data_processor import DataProcessor
-from src import DataTrainingArguments
+from src.utils.arguments import DataTrainingArguments
+from src.utils.constants import key_names
 
 
 class DataHandler():
-    def __init__(self, data_args: DataTrainingArguments, model_args: TrainingArguments, tokenizer: AutoTokenizer, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
+    def __init__(self, data_args: DataTrainingArguments, train_args: TrainingArguments, tokenizer: AutoTokenizer, datasets: Dataset, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
         """DataHandler 초기화 설정.
         Args:
             data_args (DataTrainingArguments): DataTrainingArguments 형식
@@ -23,14 +26,20 @@ class DataHandler():
             data_args.max_seq_length, tokenizer.model_max_length,
         )
 
-        self.data_args.output_dir = model_args.output_dir
-        self.data_args.do_predict = model_args.do_predict
-        self.data_args.do_eval = model_args.do_eval
-        self.data_args.do_train = model_args.do_train
+        self.data_args.output_dir = train_args.output_dir           # type: ignore[attr-defined]
+        self.data_args.do_predict = train_args.do_predict           # type: ignore[attr-defined]
+        self.data_args.do_eval = train_args.do_eval                 # type: ignore[attr-defined]
+        self.data_args.do_train = train_args.do_train               # type: ignore[attr-defined]
 
-        self.datasets = load_from_disk(self.data_args.dataset_name)
+        if datasets:
+            self.datasets = datasets
+        else:
+            self.datasets = load_from_disk(data_args.dataset_name)
 
-        self.processors = {'pre': preprocessor, 'pos': postprocessor}
+        self.processors = {
+            key_names.PREPROCESSOR: preprocessor,
+            key_names.POSTPROCESSOR: postprocessor,
+        }
         # TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
 
     def process_func(self, type: str) -> Callable:
@@ -54,10 +63,10 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[proc].process(proc, self.tokenizer, self.data_args, self.datasets[data_type])
+        processed_data = self.processors[proc].process(self.data_args, self.datasets[data_type], tokenizer=self.tokenizer)
         return processed_data
 
-    def load_data(self, type: str) -> dict:
+    def load_data(self, type: str) -> DatasetDict:
         """데이터를 로드, 기본적으로 전처리 함
 
         Args:
@@ -75,3 +84,11 @@ class DataHandler():
         datasets = self.process_data('pre', type)
 
         return datasets
+
+    def plain_data(self, type) -> DatasetDict:
+        """전처리 거치지 않은 데이터셋을 반환
+
+        Args:
+            type (str): data type
+        """
+        return self.datasets[type]
