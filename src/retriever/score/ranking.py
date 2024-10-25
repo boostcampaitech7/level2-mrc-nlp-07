@@ -17,4 +17,3 @@ def calculate_linear_score(df):
     else: # 정답이 후보에 없을 경우
         score = 0 
     return score
-

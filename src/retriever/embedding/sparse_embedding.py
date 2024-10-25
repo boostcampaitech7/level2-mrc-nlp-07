@@ -19,18 +19,18 @@ class SparseEmbedding:
         ngram_range:tuple=(1,2), 
         max_features:int=50000,
         mode: str = 'tfidf', 
-        tokenized_docs:List[str] = None,
         k1: float = 1.1,
         b: float = 0.5,
         ):
         """
         Args:
-            docs (List[str]): _description_
-            tokenizer (_type_, optional): _description_. Defaults to None.
-            ngram_range (tuple, optional): _description_. Defaults to (1,2).
-            max_features (int, optional): _description_. Defaults to 50000.
-            mode (str, optional): _description_. Defaults to 'tfidf'.
-            tokenized_docs (_type_, optional): _description_. Defaults to None.
+            docs (List[str]): 문서 리스트
+            tokenizer (_type_, optional): 토크나이저 함수. Defaults to None이면 한국어 명사 추출기 사용.
+            ngram_range (tuple, optional): n-gram 범위. Defaults to (1,2).
+            max_features (int, optional): 최대 특성 개수. Defaults to 50000.
+            mode (str, optional): 임베딩 모드. Defaults to 'tfidf'.
+            k1 (float, optional): BM25 파라미터. Defaults to 1.1.
+            b (float, optional): BM25 파라미터. Defaults to 0.5.
         """
         self.docs = docs
         self.tokenizer = tokenizer if tokenizer else lambda x: x.split()
@@ -100,8 +100,7 @@ class SparseEmbedding:
     def _generate_ngrams_and_update_vocab(self):
         new_vocab = Counter()
         new_doc_freqs = Counter()
-
-        for doc in tqdm(self.tokenized_docs, desc='Generating n-grams'):
+        for doc in tqdm(self.tokenized_docs, desc="Generating n-grams"):
             doc_ngrams = self._get_ngrams(doc)
             new_vocab.update(doc_ngrams)
             new_doc_freqs.update(set(doc_ngrams))

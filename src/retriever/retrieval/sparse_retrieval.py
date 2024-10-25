@@ -10,24 +10,22 @@ from src.utils.timer import timer
 from src.retriever.embedding.sparse_embedding import SparseEmbedding
 from src.retriever.score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
 from src.retriever.similarity.similarity import ComputeSimilarity
-
+import re
+ 
 
 class SparseRetrieval:
     def __init__(
         self,
-        tokenize_fn,
+        tokenize_fn= None,
         data_path: Optional[str] = "../data/",
         context_path: Optional[str] = "wikipedia_documents.json",
-        load_from_file: bool = False,
         mode : Optional[str] = 'bm25',
-        max_feature:int = None,
+        max_feature:int = 1000000,
         ngram_range :tuple = (1,2),
         tokenized_docs = None,
         k1: float = 1.1,
         b: float = 0.5,
-
     ) -> NoReturn:
-
         """
         Arguments:
             tokenize_fn:
@@ -42,12 +40,11 @@ class SparseRetrieval:
 
             context_path:
                 Passage들이 묶여있는 파일명
-                
-            load_from_file:
-                사전에 미리 학습된 파일들을 들고 오는지에 대한 여부를 알려주는 변수로, bool값
             
             mode:
                 'tfidf' : sklearn의 tfidf 모드. 'my_tfidf' : 직접 구현한 tfidf 모드. 'bm25' : 직접 구현한 bm25 모드.
+            max_feature : Embedding 차원 int형 타입을 받으며, default = 1000000,
+            ngram_range : 단어장 생성시 n_gram을 얼마나 할지 결정, default = (1,2),
         Summary:
             Passage 파일을 불러오고 TfidfVectorizer를 선언하는 기능을 합니다.
         """
@@ -67,15 +64,47 @@ class SparseRetrieval:
         self.emd_path = os.path.join(self.data_path, self.pickle_name)
         self.sparse_path = os.path.join(self.data_path, self.sparse_name)
         self.tokenized_docs = tokenized_docs
+        
         self.k1, self.b = k1, b
         self._initialize_from_wiki(context_path)
-
+    
+    def clean_text(self, text):
+        # 특수 문자 제거
+        text = re.sub(r'[^\w\s\.\,\?\!]', ' ', text)
+        # 불필요한 패턴 제거
+        patterns_to_remove = [
+            r'[\'\"\[\]\{\}\(\)]',  # 따옴표, 괄호류
+            r'\'text\':|\'context\':', # 'text':, 'context': 패턴
+            r'[a-zA-Z]\)',  # (a), (b) 같은 패턴
+            r'\\[a-zA-Z]',  # \x, \u 등의 escape sequence
+        ]
+        for pattern in patterns_to_remove:
+            text = re.sub(pattern, ' ', text)
+        escape_sequences = [
+        r'\\',       # \
+        r'\/n',      # /n
+        r'\/',       # /
+        r':',        # : 
+        ]
+        for escape in escape_sequences:
+            text = text.replace(escape, ' ')
+        # 한글과 숫자만 영어 남기고 모두 제거
+        cleaned_text = re.sub(r'[^가-힣a-zA-Z0-9\s]', ' ', text)
+        # 여러 개의 공백을 하나의 공백으로 변경
+        cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+        return cleaned_text.strip()
+        
     def _initialize_from_wiki(self, context_path: str):
         with open(os.path.join(self.data_path, context_path), "r", encoding="utf-8") as f:
             wiki = json.load(f)
-
-        self.docs = list(dict.fromkeys([v["text"] for v in wiki.values()]))
-        print(f"Lengths of unique contexts : {len(self.docs)}")
+        
+        self.original_docs = list(dict.fromkeys([v["text"] for v in wiki.values()]))
+        self.cleaned_docs = [self.clean_text(doc) for doc in self.original_docs]
+        print(f'original_docs : {self.original_docs[416][:100]}')
+        print(f'cleaned_docs : {self.cleaned_docs[416][:100]}')
+    # 
+    # 원본 텍스트와 정제된 텍스트의 매핑 사전 생성
+        print(f"Lengths of unique contexts : {len(self.original_docs)}")
         #self.ids = list(range(len(self.docs)))
         
     def get_sparse_embedding(self) -> NoReturn:
@@ -90,34 +119,30 @@ class SparseRetrieval:
                 - 'my_tfidf': 직접 구현한 TF-IDF
                 - 'bm25': 직접 구현한 BM25
         """
-        # if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
-        #     print(f"Loading {self.mode} embedding...")
-        #     self.p_embedding = load_npz(self.emd_path)
-        #     self.sparse_embed = SparseEmbedding.load(self.sparse_path)
-        #     print("Loading completed.")
-        # else:
-        print(f"Building {self.mode} embedding...")
-        self._calculate_embeddings()
-
-
+        if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):
+            print(f"Loading {self.mode} embedding...")
+            self.p_embedding = load_npz(self.emd_path)
+            self.sparse_embed = SparseEmbedding.load(self.sparse_path)
+            print("Loading completed.")
+        else:
+            print(f"Building {self.mode} embedding...")
+            self._calculate_embeddings()
         print(f"{self.mode} embedding shape:", self.p_embedding.shape)
         
     def _calculate_embeddings(self):
         self.sparse_embed = SparseEmbedding(
-            docs=self.docs,
+            docs=self.cleaned_docs,
             tokenizer=self.tokenize_fn,
             mode= self.mode,
             ngram_range=self.ngram_range,
             max_features=self.max_features,
-            tokenized_docs = self.tokenized_docs,
             k1 = self.k1,
             b = self.b,
         )
         self.p_embedding = self.sparse_embed.get_embedding()
-        # save_npz(self.emd_path, self.p_embedding)
-        # self.sparse_embed.save(self.sparse_path)
-        # print("New embeddings calculated and saved.")
-
+        save_npz(self.emd_path, self.p_embedding)
+        self.sparse_embed.save(self.sparse_path)
+        print("New embeddings calculated and saved.")
 
     # 유사도 검색을 통한 비슷한 문서 검색
     def retrieve(
@@ -153,9 +178,9 @@ class SparseRetrieval:
             # k개 만큼의 결과 출력
             for i in range(topk):
                 print(f"Top-{i+1} passage with score {doc_scores[i]:4f}")
-                print(self.docs[doc_indices[i]])
+                print(self.original_docs[doc_indices[i]])
 
-            return (doc_scores, [self.docs[doc_indices[i]] for i in range(topk)])
+            return (doc_scores, [self.original_docs[doc_indices[i]] for i in range(topk)])
         # query or dataset이 dataset이 아닐경우 -> 이는 쿼리가 한개가 아니라 여러개라는 의미.
         elif isinstance(query_or_dataset, Dataset):
 
@@ -175,9 +200,9 @@ class SparseRetrieval:
                     "question": example["question"],
                     "id": example["id"],
                     # Retrieve한 Passage의 id, context를 반환합니다.
-                    "retrieval_context": " ".join(
-                        [self.docs[pid] for pid in doc_indices[idx]] # 현재 쿼리에 대한 가장 유사도가 높은 k개의 content들을 합침.
-                    ),
+                    "retrieval_context": 
+                        [self.original_docs[pid] for pid in doc_indices[idx]] # 현재 쿼리에 대한 가장 유사도가 높은 k개의 content들을 합침.
+                    ,
                 }
                 if "context" in example.keys() and "answers" in example.keys():
                     # validation 데이터를 사용하면 ground_truth context와 answer도 반환합니다.
@@ -202,7 +227,7 @@ class SparseRetrieval:
         """
         # 위에서 선언한 contextmanager 들고와서 걸리는 시간 Check!
         with timer("transform"):
-            query = self.tokenizer(query)
+            query = self.clean_text(query)
             query_vec = self.sparse_embed.transform([query]) # 쿼리문을 벡터화
         # 쿼리문이 정상적으로 바뀌였는지 확인
         assert (
@@ -210,7 +235,7 @@ class SparseRetrieval:
         ), "오류가 발생했습니다. 이 오류는 보통 query에 vectorizer의 vocab에 없는 단어만 존재하는 경우 발생합니다."
         
         # 쿼리 벡터와 
-        with timer("query ex search"):
+        with timer("query ex search"):                                          # (위키)
             result = query_vec @ self.p_embedding.T # (1, 50,000) x (50,000 x 문서 벡터 수) -> (1, 문서 수) -> 가장 유사한 문서를 찾을 수 있다..?
         if not isinstance(result, np.ndarray):
             result = result.toarray()
@@ -239,6 +264,7 @@ class SparseRetrieval:
             raise ValueError("Embedding mode not set. Call get_sparse_embedding first.")
 
         # Query vector 계산
+        #cleaned_queries = [self.clean_text(q) for q in queries]
         stage1 = [self.sparse_embed.transform(query) for query in queries]
         query_vecs = vstack(stage1) # 질문수, 임베딩 차원
         assert (
@@ -246,7 +272,6 @@ class SparseRetrieval:
         ), "query_vecs가 제대로 변환되지않음."
 
         print(query_vecs.shape, self.p_embedding.shape)
-        print(type(query_vecs), type(self.p_embedding))
         # 유사도 계산
         
         result = query_vecs @ self.p_embedding.T  # 행렬 곱 연산 (질문수, 임베딩 차원) x (임베딩 차원, 문서수)
@@ -281,8 +306,37 @@ class SparseRetrieval:
             "linear retrieval",
             df["linear_score"].sum() / len(df)
         )
-        df['length'] = df['retrieval_context'].apply(lambda x: len(x))
-        print(
-            "docs_len",
-            np.mean(df['length'])
-        )
+        #df['length'] = df['retrieval_context'].apply(lambda x: len(x))
+
+        
+    def compute_l2_distance(query_vec, passage_vec) -> np.ndarray:
+        """ 
+        Arguments:
+            query_vec:
+                embedding된 query vector 입니다.
+
+            passage_vec:
+                embedding된 passage vector 입니다.
+
+        Summary:
+            query vector와 passage vector를 input으로 받고, L2 거리를 계산해주는 함수입니다.
+        """
+
+        # dense matrix로 변경
+        if not isinstance(query_vec, np.ndarray):
+            query_vec = query_vec.toarray()
+        if not isinstance(passage_vec, np.ndarray):
+            passage_vec = passage_vec.toarray()
+
+        # 결과값 저장을 위한 빈 리스트 생성
+        num_queries = query_vec.shape[0]
+        num_passages = passage_vec.shape[0]
+        l2_distances = np.zeros((num_queries, num_passages))
+
+        for i in tqdm(range(num_queries), desc="Computing L2 distances"):
+            # i번째 쿼리와 모든 passage 간의 L2 거리를 계산하고 저장
+            l2_distances[i] = cdist(query_vec[i:i+1], passage_vec, metric='euclidean').flatten()
+            print(f"L2 Distance: {l2_distances[i]}")
+
+        print(f"L2_distances shape: ")
+        return l2_distances
