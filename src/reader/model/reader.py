@@ -14,6 +14,9 @@ from src.reader.model.trainer_manager import TrainerManager
 from src.utils.argument_validator import validate_flags
 from src.utils.arguments import DataTrainingArguments
 from src.utils.arguments import ModelArguments
+from src.utils.constants.key_names import POSTPROCESSOR
+from src.utils.constants.key_names import TRAIN
+from src.utils.constants.key_names import VALIDATION
 from src.utils.log.logger import setup_logger
 
 
@@ -29,6 +32,16 @@ class Reader:
         self.model_manager = HuggingFaceLoadManager(model_args)
         self.data_args = data_args
 
+        self.training_args = training_args
+
+        '''성능향상 시도
+        self.training_args.fp16 = True
+        self.training_args.torch_compile = True'''
+
+        self.datasets = datasets
+        self.result_saver = ResultSaver(training_args, self.logger)
+        self.metric = load(model_args.metric)
+
         self.data_handler = DataHandler(
             data_args=data_args, train_args=training_args,
             tokenizer=self.model_manager.get_tokenizer(),
@@ -37,10 +50,6 @@ class Reader:
             postprocessor=DataPostProcessor,                        # type: ignore[arg-type]
 
         )
-        self.training_args = training_args
-        self.datasets = datasets
-        self.result_saver = ResultSaver(training_args, self.logger)
-        self.metric = load('squad')     # TODO: 리터럴 스트링 상수에서 뺄 것
 
     def run(self):
         """Reader 실행 함수."""
@@ -51,9 +60,9 @@ class Reader:
         validate_flags(training_args.do_train, training_args.do_eval, training_args.do_predict)
 
         # 데이터 전처리
-        train_dataset = data_handler.load_data('train') if training_args.do_train else None
-        eval_dataset = data_handler.load_data('validation') if training_args.do_eval else None
-        test_dataset = data_handler.load_data('validation') if training_args.do_predict else None
+        train_dataset = data_handler.load_data(TRAIN) if training_args.do_train else None
+        eval_dataset = data_handler.load_data(VALIDATION) if training_args.do_eval else None
+        test_dataset = data_handler.load_data(VALIDATION) if training_args.do_predict else None
         # LOOK do_eval이랑 do_predict 동시에 안될거 같다...?
 
         # TrainerManager 생성 및 실행
@@ -66,13 +75,13 @@ class Reader:
         )
         trainer = trainer_manager.create_trainer(
             train_dataset=train_dataset, eval_dataset=eval_dataset, eval_example=data_handler.plain_data(
-                'validation',
-            ) if training_args.do_eval or training_args.do_predict else None, post_processing_function=self.data_handler.process_func('pos'),
+                VALIDATION,
+            ) if training_args.do_eval or training_args.do_predict else None, post_processing_function=self.data_handler.process_func(POSTPROCESSOR),
         )
 
         if training_args.do_train:
             train_result = trainer_manager.run_training(trainer, train_dataset)
-            self.result_saver.save_results(trainer, train_result, train_dataset, 'train')
+            self.result_saver.save_results(trainer, train_result, train_dataset, TRAIN)
 
         if training_args.do_eval:
             eval_metrics = trainer_manager.run_evaluation(trainer, eval_dataset)

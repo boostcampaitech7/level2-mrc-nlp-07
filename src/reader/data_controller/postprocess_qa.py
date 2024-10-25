@@ -1,20 +1,3 @@
-# Copyright 2020 The HuggingFace Team All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the 'License');
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""
-Pre-processing
-Post-processing utilities for question answering.
-"""
 from __future__ import annotations
 
 import collections
@@ -24,6 +7,21 @@ import os
 import numpy as np
 from tqdm.auto import tqdm
 
+from src.utils.constants.key_names import CONTEXT
+from src.utils.constants.key_names import END_LOGIT
+from src.utils.constants.key_names import EXAMPLE_ID
+from src.utils.constants.key_names import ID
+from src.utils.constants.key_names import NBEST_PREDICTIONS
+from src.utils.constants.key_names import NULL_SCORE_DIFF
+from src.utils.constants.key_names import OFFSET_MAPPING
+from src.utils.constants.key_names import PREDICTIONS
+from src.utils.constants.key_names import PROBABILITY
+from src.utils.constants.key_names import SCORE
+from src.utils.constants.key_names import START_LOGIT
+from src.utils.constants.key_names import TEXT
+from src.utils.constants.reader_configuration import MAX_ANSWER_LENGTH
+from src.utils.constants.reader_configuration import N_BEST_SIZE
+from src.utils.constants.reader_configuration import NULL_SCORE_DIFF_THRESHOLD
 from src.utils.log.logger import setup_logger
 
 
@@ -32,9 +30,9 @@ def postprocess_qa_predictions(
     features,
     predictions: tuple[np.ndarray, np.ndarray],
     version_2_with_negative: bool = False,
-    n_best_size: int = 20,
-    max_answer_length: int = 30,
-    null_score_diff_threshold: float = 0.0,
+    n_best_size: int = N_BEST_SIZE,
+    max_answer_length: int = MAX_ANSWER_LENGTH,
+    null_score_diff_threshold: float = NULL_SCORE_DIFF_THRESHOLD,
     output_dir: str | None = None,
     prefix: str | None = None,
     is_world_process_zero: bool = True,
@@ -72,21 +70,17 @@ def postprocess_qa_predictions(
         is_world_process_zero (:obj:`bool`, `optional`, defaults to :obj:`True`):
             이 프로세스가 main process인지 여부(logging/save를 수행해야 하는지 여부를 결정하는 데 사용됨)
     """
-    assert (
-        len(predictions) == 2
-    ), '`predictions` should be a tuple with two elements (start_logits, end_logits).'
+    assert len(predictions) == 2, '`predictions` should be a tuple with two elements (start_logits, end_logits).'
     all_start_logits, all_end_logits = predictions
 
-    assert len(predictions[0]) == len(
-        features,
-    ), f'Got {len(predictions[0])} predictions and {len(features)} features.'
+    assert len(predictions[0]) == len(features), f'Got {len(predictions[0])} predictions and {len(features)} features.'
 
     # example과 mapping되는 feature 생성
-    print('postprocess_qa '+str(examples))
-    example_id_to_index = {k: i for i, k in enumerate(examples['id'])}
+    print('postprocess_qa ' + str(examples))
+    example_id_to_index = {k: i for i, k in enumerate(examples[ID])}
     features_per_example = collections.defaultdict(list)
     for i, feature in enumerate(features):
-        features_per_example[example_id_to_index[feature['example_id']]].append(i)
+        features_per_example[example_id_to_index[feature[EXAMPLE_ID]]].append(i)
 
     # prediction, nbest에 해당하는 OrderedDict 생성합니다.
     all_predictions = collections.OrderedDict()
@@ -96,11 +90,6 @@ def postprocess_qa_predictions(
 
     # Logging.
     logger = setup_logger('postprocess log')
-
-    # logger.setLevel(logging.INFO if is_world_process_zero else logging.WARN)
-    # logger.info(
-    #     f"Post-processing {len(examples)} example predictions split into {len(features)} features."
-    # )
 
     # 전체 example들에 대한 main Loop
     for example_index, example in enumerate(tqdm(examples)):
@@ -112,34 +101,26 @@ def postprocess_qa_predictions(
 
         # 현재 example에 대한 모든 feature 생성합니다.
         for feature_index in feature_indices:
-            # 각 featureure에 대한 모든 prediction을 가져옵니다.
+            # 각 feature에 대한 모든 prediction을 가져옵니다.
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             # logit과 original context의 logit을 mapping합니다.
-            offset_mapping = features[feature_index]['offset_mapping']
+            offset_mapping = features[feature_index][OFFSET_MAPPING]
             # Optional : `token_is_max_context`, 제공되는 경우 현재 기능에서 사용할 수 있는 max context가 없는 answer를 제거합니다
-            token_is_max_context = features[feature_index].get(
-                'token_is_max_context', None,
-            )
+            token_is_max_context = features[feature_index].get('token_is_max_context', None)
 
             # minimum null prediction을 업데이트 합니다.
             feature_null_score = start_logits[0] + end_logits[0]
-            if (
-                min_null_prediction is None
-                or min_null_prediction['score'] > feature_null_score
-            ):
+            if min_null_prediction is None or min_null_prediction[SCORE] > feature_null_score:
                 min_null_prediction = {
-                    'offsets': (0, 0),
-                    'score': feature_null_score,
-                    'start_logit': start_logits[0],
-                    'end_logit': end_logits[0],
+                    OFFSET_MAPPING: (0, 0),
+                    SCORE: feature_null_score,
+                    START_LOGIT: start_logits[0],
+                    END_LOGIT: end_logits[0],
                 }
 
             # `n_best_size`보다 큰 start and end logits을 살펴봅니다.
-            start_indexes = np.argsort(start_logits)[
-                -1: -n_best_size - 1: -1
-            ].tolist()
-
+            start_indexes = np.argsort(start_logits)[-1: -n_best_size - 1: -1].tolist()
             end_indexes = np.argsort(end_logits)[-1: -n_best_size - 1: -1].tolist()
 
             for start_index in start_indexes:
@@ -153,100 +134,74 @@ def postprocess_qa_predictions(
                     ):
                         continue
                     # 길이가 < 0 또는 > max_answer_length인 answer도 고려하지 않습니다.
-                    if (
-                        end_index < start_index
-                        or end_index - start_index + 1 > max_answer_length
-                    ):
+                    if end_index < start_index or end_index - start_index + 1 > max_answer_length:
                         continue
                     # 최대 context가 없는 answer도 고려하지 않습니다.
-                    if (
-                        token_is_max_context is not None
-                        and not token_is_max_context.get(str(start_index), False)
-                    ):
+                    if token_is_max_context is not None and not token_is_max_context.get(str(start_index), False):
                         continue
                     prelim_predictions.append(
                         {
-                            'offsets': (
+                            OFFSET_MAPPING: (
                                 offset_mapping[start_index][0],
                                 offset_mapping[end_index][1],
                             ),
-                            'score': start_logits[start_index] + end_logits[end_index],
-                            'start_logit': start_logits[start_index],
-                            'end_logit': end_logits[end_index],
+                            SCORE: start_logits[start_index] + end_logits[end_index],
+                            START_LOGIT: start_logits[start_index],
+                            END_LOGIT: end_logits[end_index],
                         },
                     )
 
         if version_2_with_negative:
-            # minimum null prediction을 추가합니다.
             prelim_predictions.append(min_null_prediction)
-            null_score = min_null_prediction['score']
+            null_score = min_null_prediction[SCORE]
 
         # 가장 좋은 `n_best_size` predictions만 유지합니다.
-        predictions_result = sorted(
-            prelim_predictions, key=lambda x: x['score'], reverse=True,
-        )[:n_best_size]
+        predictions_result = sorted(prelim_predictions, key=lambda x: x[SCORE], reverse=True)[:n_best_size]
 
         # 낮은 점수로 인해 제거된 경우 minimum null prediction을 다시 추가합니다.
-        if version_2_with_negative and not any(
-            p['offsets'] == (0, 0) for p in predictions_result
-        ):
+        if version_2_with_negative and not any(p[OFFSET_MAPPING] == (0, 0) for p in predictions_result):
             predictions_result.append(min_null_prediction)
 
         # offset을 사용하여 original context에서 answer text를 수집합니다.
-        context = example['context']
+        context = example[CONTEXT]
         for pred in predictions_result:
-            offsets = pred.pop('offsets')
-            pred['text'] = context[offsets[0]: offsets[1]]
+            offsets = pred.pop(OFFSET_MAPPING)
+            pred[TEXT] = context[offsets[0]: offsets[1]]
 
         # rare edge case에는 null이 아닌 예측이 하나도 없으며 failure를 피하기 위해 fake prediction을 만듭니다.
-        if len(predictions) == 0 or (
-            len(predictions) == 1 and predictions[0]['text'] == ''
-        ):
-
+        if len(predictions_result) == 0 or (len(predictions_result) == 1 and predictions_result[0][TEXT] == ''):
             predictions_result.insert(
-                0, {'text': 'empty', 'start_logit': 0.0, 'end_logit': 0.0, 'score': 0.0},
+                0, {TEXT: 'empty', START_LOGIT: 0.0, END_LOGIT: 0.0, SCORE: 0.0},
             )
 
-        # 모든 점수의 소프트맥스를 계산합니다
-        # (we do it with numpy to stay independent from torch/tf in this file, using the LogSumExp trick).
-        scores = np.array([pred.pop('score') for pred in predictions_result])
+        # 모든 점수의 소프트맥스를 계산합니다.
+        scores = np.array([pred.pop(SCORE) for pred in predictions_result])
         exp_scores = np.exp(scores - np.max(scores))
         probs = exp_scores / exp_scores.sum()
 
         # 예측값에 확률을 포함합니다.
         for prob, pred in zip(probs, predictions_result):
-            pred['probability'] = prob
+            pred[PROBABILITY] = prob
 
         # best prediction을 선택합니다.
         if not version_2_with_negative:
-            all_predictions[example['id']] = predictions_result[0]['text']
+            all_predictions[example[ID]] = predictions_result[0][TEXT]
         else:
-            # else case : 먼저 비어 있지 않은 최상의 예측을 찾아야 합니다
             i = 0
-            while predictions_result[i]['text'] == '':
+            while predictions_result[i][TEXT] == '':
                 i += 1
             best_non_null_pred = predictions_result[i]
 
-            # threshold를 사용해서 null prediction을 비교합니다.
-            score_diff = (
-                null_score
-                - best_non_null_pred['start_logit']
-                - best_non_null_pred['end_logit']
-            )
-            scores_diff_json[example['id']] = float(score_diff)  # JSON-serializable 가능
+            score_diff = null_score - best_non_null_pred[START_LOGIT] - best_non_null_pred[END_LOGIT]
+            scores_diff_json[example[ID]] = float(score_diff)
             if score_diff > null_score_diff_threshold:
-                all_predictions[example['id']] = ''
+                all_predictions[example[ID]] = ''
             else:
-                all_predictions[example['id']] = best_non_null_pred['text']
+                all_predictions[example[ID]] = best_non_null_pred[TEXT]
 
-        # np.float를 다시 float로 casting -> `predictions`은 JSON-serializable 가능
-        all_nbest_json[example['id']] = [
+        all_nbest_json[example[ID]] = [
             {
-                k: (
-                    float(v)
-                    if isinstance(v, (np.float16, np.float32, np.float64))
-                    else v
-                )
+                k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v)
                 for k, v in pred.items()
             }
             for pred in predictions_result
@@ -256,37 +211,22 @@ def postprocess_qa_predictions(
     if output_dir is not None:
         assert os.path.isdir(output_dir), f'{output_dir} is not a directory.'
 
-        prediction_file = os.path.join(
-            output_dir,
-            'predictions.json' if prefix is None else f'predictions_{prefix}.json',
-        )
-        nbest_file = os.path.join(
-            output_dir,
-            'nbest_predictions.json'
-            if prefix is None
-            else f'nbest_predictions_{prefix}.json',
-        )
+        prediction_file = os.path.join(output_dir, f'{PREDICTIONS}.json' if prefix is None else f'{PREDICTIONS}_{prefix}.json')
+        nbest_file = os.path.join(output_dir, f'{NBEST_PREDICTIONS}.json' if prefix is None else f'{NBEST_PREDICTIONS}_{prefix}.json')
         if version_2_with_negative:
-            null_odds_file = os.path.join(
-                output_dir,
-                'null_odds.json' if prefix is None else f'null_odds_{prefix}.json',
-            )
+            null_odds_file = os.path.join(output_dir, f'{NULL_SCORE_DIFF}.json' if prefix is None else f'{NULL_SCORE_DIFF}_{prefix}.json')
 
         logger.info(f'Saving predictions to {prediction_file}.')
         with open(prediction_file, 'w', encoding='utf-8') as writer:
-            writer.write(
-                json.dumps(all_predictions, indent=4, ensure_ascii=False) + '\n',
-            )
+            writer.write(json.dumps(all_predictions, indent=4, ensure_ascii=False) + '\n')
+
         logger.info(f'Saving nbest_preds to {nbest_file}.')
         with open(nbest_file, 'w', encoding='utf-8') as writer:
-            writer.write(
-                json.dumps(all_nbest_json, indent=4, ensure_ascii=False) + '\n',
-            )
+            writer.write(json.dumps(all_nbest_json, indent=4, ensure_ascii=False) + '\n')
+
         if version_2_with_negative:
             logger.info(f'Saving null_odds to {null_odds_file}.')
             with open(null_odds_file, 'w', encoding='utf-8') as writer:
-                writer.write(
-                    json.dumps(scores_diff_json, indent=4, ensure_ascii=False) + '\n',
-                )
+                writer.write(json.dumps(scores_diff_json, indent=4, ensure_ascii=False) + '\n')
 
     return all_predictions

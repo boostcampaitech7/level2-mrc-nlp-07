@@ -8,6 +8,9 @@ from transformers import is_datasets_available
 from transformers import is_torch_xla_available
 from transformers import Trainer
 
+from src.utils.constants.key_names import EVALUATION_DESCRIPTION
+from src.utils.constants.key_names import PREDICTION_DESCRIPTION
+
 if is_datasets_available():
     import datasets
 
@@ -112,7 +115,7 @@ class QuestionAnsweringTrainer(Trainer):
 
         # 예측 수행 (후처리 및 결과)
         eval_preds = self._shared_evaluate_or_predict(
-            eval_dataset, eval_examples, description='Evaluation', ignore_keys=ignore_keys,
+            eval_dataset, eval_examples, description=EVALUATION_DESCRIPTION, ignore_keys=ignore_keys,
         )
 
         # 메트릭 계산 및 로깅
@@ -150,5 +153,5 @@ class QuestionAnsweringTrainer(Trainer):
         test_examples = self.eval_examples if test_examples is None else test_examples
 
         return self._shared_evaluate_or_predict(
-            test_dataset, test_examples, description='Prediction', ignore_keys=ignore_keys, is_predict=True,
+            test_dataset, test_examples, description=PREDICTION_DESCRIPTION, ignore_keys=ignore_keys, is_predict=True,
         )

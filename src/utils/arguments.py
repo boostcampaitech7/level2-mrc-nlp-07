@@ -45,6 +45,14 @@ class ModelArguments:
              """,
          },
     )'''
+    metric: str | None = field(
+        default='squad',
+        metadata={
+            'help': """
+            evlauation시 사용할 metric
+            """,
+        },
+    )
 
 
 @dataclass
