@@ -14,6 +14,9 @@ from src.reader.model.trainer_manager import TrainerManager
 from src.utils.argument_validator import validate_flags
 from src.utils.arguments import DataTrainingArguments
 from src.utils.arguments import ModelArguments
+from src.utils.constants.key_names import POSTPROCESSOR
+from src.utils.constants.key_names import TRAIN
+from src.utils.constants.key_names import VALIDATION
 from src.utils.log.logger import setup_logger
 
 
@@ -57,9 +60,9 @@ class Reader:
         validate_flags(training_args.do_train, training_args.do_eval, training_args.do_predict)
 
         # 데이터 전처리
-        train_dataset = data_handler.load_data('train') if training_args.do_train else None
-        eval_dataset = data_handler.load_data('validation') if training_args.do_eval else None
-        test_dataset = data_handler.load_data('validation') if training_args.do_predict else None
+        train_dataset = data_handler.load_data(TRAIN) if training_args.do_train else None
+        eval_dataset = data_handler.load_data(VALIDATION) if training_args.do_eval else None
+        test_dataset = data_handler.load_data(VALIDATION) if training_args.do_predict else None
         # LOOK do_eval이랑 do_predict 동시에 안될거 같다...?
 
         # TrainerManager 생성 및 실행
@@ -72,13 +75,13 @@ class Reader:
         )
         trainer = trainer_manager.create_trainer(
             train_dataset=train_dataset, eval_dataset=eval_dataset, eval_example=data_handler.plain_data(
-                'validation',
-            ) if training_args.do_eval or training_args.do_predict else None, post_processing_function=self.data_handler.process_func('pos'),
+                VALIDATION,
+            ) if training_args.do_eval or training_args.do_predict else None, post_processing_function=self.data_handler.process_func(POSTPROCESSOR),
         )
 
         if training_args.do_train:
             train_result = trainer_manager.run_training(trainer, train_dataset)
-            self.result_saver.save_results(trainer, train_result, train_dataset, 'train')
+            self.result_saver.save_results(trainer, train_result, train_dataset, TRAIN)
 
         if training_args.do_eval:
             eval_metrics = trainer_manager.run_evaluation(trainer, eval_dataset)

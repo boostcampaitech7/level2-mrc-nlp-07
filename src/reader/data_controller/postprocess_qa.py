@@ -19,6 +19,9 @@ from src.utils.constants.key_names import PROBABILITY
 from src.utils.constants.key_names import SCORE
 from src.utils.constants.key_names import START_LOGIT
 from src.utils.constants.key_names import TEXT
+from src.utils.constants.reader_configuration import MAX_ANSWER_LENGTH
+from src.utils.constants.reader_configuration import N_BEST_SIZE
+from src.utils.constants.reader_configuration import NULL_SCORE_DIFF_THRESHOLD
 from src.utils.log.logger import setup_logger
 
 
@@ -27,9 +30,9 @@ def postprocess_qa_predictions(
     features,
     predictions: tuple[np.ndarray, np.ndarray],
     version_2_with_negative: bool = False,
-    n_best_size: int = 20,
-    max_answer_length: int = 30,
-    null_score_diff_threshold: float = 0.0,
+    n_best_size: int = N_BEST_SIZE,
+    max_answer_length: int = MAX_ANSWER_LENGTH,
+    null_score_diff_threshold: float = NULL_SCORE_DIFF_THRESHOLD,
     output_dir: str | None = None,
     prefix: str | None = None,
     is_world_process_zero: bool = True,
