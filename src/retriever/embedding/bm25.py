@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 import math
-
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse import vstack
