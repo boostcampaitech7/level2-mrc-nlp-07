@@ -2,16 +2,18 @@ from __future__ import annotations
 
 from typing import Callable
 
+from datasets import Dataset
+from datasets import DatasetDict
 from datasets import load_from_disk
 from transformers import AutoTokenizer
 from transformers import TrainingArguments
 
-from reader.data_controller.data_processor import DataProcessor
-from utils.arguments import DataTrainingArguments
+from src.reader.data_controller.data_processor import DataProcessor
+from src.utils.arguments import DataTrainingArguments
 
 
 class DataHandler():
-    def __init__(self, data_args: DataTrainingArguments, train_args: TrainingArguments, tokenizer: AutoTokenizer, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
+    def __init__(self, data_args: DataTrainingArguments, train_args: TrainingArguments, tokenizer: AutoTokenizer, datasets: Dataset, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:
         """DataHandler 초기화 설정.
         Args:
             data_args (DataTrainingArguments): DataTrainingArguments 형식
@@ -28,7 +30,10 @@ class DataHandler():
         self.data_args.do_eval = train_args.do_eval                 # type: ignore[attr-defined]
         self.data_args.do_train = train_args.do_train               # type: ignore[attr-defined]
 
-        self.datasets = load_from_disk(self.data_args.dataset_name)
+        if datasets:
+            self.datasets = datasets
+        else:
+            self.datasets = load_from_disk(data_args.dataset_name)
 
         self.processors = {'pre': preprocessor, 'pos': postprocessor}
         # TODO: 입력을 여러개 받고 해당 클래스의 정보를 읽어서 dictionary 등록하는 방식으로 변경
@@ -54,10 +59,10 @@ class DataHandler():
         Returns:
             BatchEncoding: _description_
         """
-        processed_data = self.processors[proc].process(self.tokenizer, self.data_args, self.datasets[data_type])
+        processed_data = self.processors[proc].process(self.data_args, self.datasets[data_type], tokenizer=self.tokenizer)
         return processed_data
 
-    def load_data(self, type: str) -> dict:
+    def load_data(self, type: str) -> DatasetDict:
         """데이터를 로드, 기본적으로 전처리 함
 
         Args:
@@ -75,3 +80,11 @@ class DataHandler():
         datasets = self.process_data('pre', type)
 
         return datasets
+
+    def plain_data(self, type) -> DatasetDict:
+        """전처리 거치지 않은 데이터셋을 반환
+
+        Args:
+            type (str): data type
+        """
+        return self.datasets[type]

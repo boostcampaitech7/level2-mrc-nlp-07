@@ -4,7 +4,9 @@ from abc import ABC
 from abc import abstractmethod
 
 from datasets import DatasetDict
+from transformers import AutoTokenizer
 from transformers import EvalPrediction
+
 from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
 # TODO: DataProcessor에 BatchEncoding 형식 적용
 # from transformers import BatchEncoding
@@ -15,7 +17,7 @@ class DataProcessor(ABC):
 
     @classmethod
     @abstractmethod
-    def process(cls, tokenizer, data_args, *datasets):
+    def process(cls, data_args, *datasets: DatasetDict, tokenizer: AutoTokenizer | None = None):
         pass
 
 
@@ -23,7 +25,7 @@ class DataPreProcessor(DataProcessor):
     name = 'pre'
 
     @classmethod
-    def process(cls, tokenizer, data_args, *datasets: DatasetDict) -> DatasetDict:
+    def process(cls, data_args, *datasets: DatasetDict, tokenizer: AutoTokenizer | None = None) -> DatasetDict:
         """데이터 전처리
 
         Args:
@@ -142,6 +144,7 @@ class DataPreProcessor(DataProcessor):
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
+        print('preprocessed '+str(dataset))
         return dataset
 
 
@@ -149,7 +152,7 @@ class DataPostProcessor(DataProcessor):
     name = 'post'
 
     @classmethod
-    def process(cls, tokenizer, data_args, *datasets):
+    def process(cls, data_args, *datasets, tokenizer: AutoTokenizer | None = None):
         # Post-processing: start logits과 end logits을 original context의 정답과 match시킵니다.
         predictions = postprocess_qa_predictions(
             examples=datasets[0],
@@ -167,11 +170,12 @@ class DataPostProcessor(DataProcessor):
 
         elif data_args.do_eval:
             answer_column_name = (
-                'answers' if 'answers' in formatted_predictions.column_names else formatted_predictions.column_names[2]
+                'answers' if 'answers' in datasets[0].column_names else datasets[0].column_names[2]
             )
             references = [
                 {'id': ex['id'], 'answers': ex[answer_column_name]}
-                for ex in datasets['validation']
+                for ex in datasets[0]
+                # LOOK 후처리로 넘어오는 데이터셋 3총사 구조 파악 필요
             ]
             return EvalPrediction(
                 predictions=formatted_predictions, label_ids=references,

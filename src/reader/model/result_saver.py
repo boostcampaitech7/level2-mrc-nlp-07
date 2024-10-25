@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from logging import Logger
 from typing import Any
@@ -7,7 +8,7 @@ from typing import Any
 from datasets import Dataset
 from transformers import TrainingArguments
 
-from reader.model.trainer_qa import QuestionAnsweringTrainer
+from src.reader.model.trainer_qa import QuestionAnsweringTrainer
 
 
 class ResultSaver:
@@ -38,6 +39,14 @@ class ResultSaver:
 
     def save_predictions(self, predictions):
         output_file = os.path.join(self.training_args.output_dir, 'predictions.json')
+
+        # 변환할 딕셔너리 초기화
+        converted_dict = {}
+
+        # 원본 데이터를 변환
+        for item in predictions:
+            converted_dict[item['id']] = item['prediction_text']
+
         with open(output_file, 'w') as writer:
-            writer.write(predictions)
+            json.dump(predictions, writer, ensure_ascii=False, indent=4)
         self.logger.info(f'Predictions saved to {output_file}')

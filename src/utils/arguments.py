@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from dataclasses import field
+from pathlib import Path
 
 
 @dataclass
@@ -36,14 +37,14 @@ class ModelArguments:
             """,
         },
     )
-    # output_dir: str = field(  # 여기에 output_dir 추가
-    #     default='./models',  # 기본 경로를 설정할 수 있습니다.
-    #     metadata={
-    #         'help': """
-    #         The output directory where the model predictions and checkpoints will be written.
-    #         """,
-    #     },
-    # )
+    '''output_dir: str = field(  # 여기에 output_dir 추가
+         default=str(Path(__file__).resolve().parent / '../../ouputs'),  # 기본 경로를 설정할 수 있습니다.
+         metadata={
+             'help': """
+             The output directory where the model predictions and checkpoints will be written.
+             """,
+         },
+    )'''
 
 
 @dataclass
@@ -54,7 +55,8 @@ class DataTrainingArguments:
     """
 
     dataset_name: str | None = field(
-        default='/data/ephemeral/home/level2-mrc-nlp-07/data/train_dataset',
+        default=str(Path(__file__).resolve().parent / '../../data/train_dataset'),
+        # 파일 이동시 경로 수정 필
         metadata={
             'help': 'The name of the dataset to use.',
         },
