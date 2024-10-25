@@ -29,6 +29,16 @@ class Reader:
         self.model_manager = HuggingFaceLoadManager(model_args)
         self.data_args = data_args
 
+        self.training_args = training_args
+
+        '''성능향상 시도
+        self.training_args.fp16 = True
+        self.training_args.torch_compile = True'''
+
+        self.datasets = datasets
+        self.result_saver = ResultSaver(training_args, self.logger)
+        self.metric = load(model_args.metric)
+
         self.data_handler = DataHandler(
             data_args=data_args, train_args=training_args,
             tokenizer=self.model_manager.get_tokenizer(),
@@ -37,10 +47,6 @@ class Reader:
             postprocessor=DataPostProcessor,                        # type: ignore[arg-type]
 
         )
-        self.training_args = training_args
-        self.datasets = datasets
-        self.result_saver = ResultSaver(training_args, self.logger)
-        self.metric = load('squad')     # TODO: 리터럴 스트링 상수에서 뺄 것
 
     def run(self):
         """Reader 실행 함수."""
