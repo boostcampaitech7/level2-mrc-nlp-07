@@ -9,9 +9,7 @@ from datasets import Dataset
 from transformers import TrainingArguments
 
 from src.reader.model.trainer_qa import QuestionAnsweringTrainer
-from src.utils.constants.key_names import ID
-from src.utils.constants.key_names import PREDICTION_TEXT
-from src.utils.constants.key_names import PREDICTIONS
+from src.config.key_names import ID, PREDICTION_TEXT, PREDICTIONS
 
 
 class ResultSaver:

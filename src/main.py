@@ -85,7 +85,7 @@ def reader():
     data_args = DataTrainingArguments()
     training_args = TrainingArguments(output_dir=outputs)
 
-    # 학습 관련 설정
+    # 학습/평가/추론 설정
     training_args.do_train = True
     training_args.do_eval = False
     training_args.do_predict = False

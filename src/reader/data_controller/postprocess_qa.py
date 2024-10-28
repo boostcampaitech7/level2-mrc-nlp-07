@@ -7,21 +7,8 @@ import os
 import numpy as np
 from tqdm.auto import tqdm
 
-from src.utils.constants.key_names import CONTEXT
-from src.utils.constants.key_names import END_LOGIT
-from src.utils.constants.key_names import EXAMPLE_ID
-from src.utils.constants.key_names import ID
-from src.utils.constants.key_names import NBEST_PREDICTIONS
-from src.utils.constants.key_names import NULL_SCORE_DIFF
-from src.utils.constants.key_names import OFFSET_MAPPING
-from src.utils.constants.key_names import PREDICTIONS
-from src.utils.constants.key_names import PROBABILITY
-from src.utils.constants.key_names import SCORE
-from src.utils.constants.key_names import START_LOGIT
-from src.utils.constants.key_names import TEXT
-from src.utils.constants.reader_configuration import MAX_ANSWER_LENGTH
-from src.utils.constants.reader_configuration import N_BEST_SIZE
-from src.utils.constants.reader_configuration import NULL_SCORE_DIFF_THRESHOLD
+from src.config.key_names import *
+from src.config.reader_configuration import *
 from src.utils.log.logger import setup_logger
 
 

@@ -14,9 +14,7 @@ from src.reader.model.trainer_manager import TrainerManager
 from src.utils.argument_validator import validate_flags
 from src.utils.arguments import DataTrainingArguments
 from src.utils.arguments import ModelArguments
-from src.utils.constants.key_names import POSTPROCESSOR
-from src.utils.constants.key_names import TRAIN
-from src.utils.constants.key_names import VALIDATION
+from src.config.key_names import *
 from src.utils.log.logger import setup_logger
 
 
@@ -63,7 +61,6 @@ class Reader:
         train_dataset = data_handler.load_data(TRAIN) if training_args.do_train else None
         eval_dataset = data_handler.load_data(VALIDATION) if training_args.do_eval else None
         test_dataset = data_handler.load_data(VALIDATION) if training_args.do_predict else None
-        # LOOK do_eval이랑 do_predict 동시에 안될거 같다...?
 
         # TrainerManager 생성 및 실행
         trainer_manager = TrainerManager(
