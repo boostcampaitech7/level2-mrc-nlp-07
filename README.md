@@ -205,9 +205,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 ├── notebook
 │   ├── Data_preprocessing.ipynb
 │   ├── EDA_with_LLM.ipynb
-│   ├── autoEDA.txt
 │   ├── dataeda.ipynb
-│   ├── requirements.txt
 │   ├── single_stage_ODQA.ipynb
 │   └── test.ipynb
 ├── src
@@ -217,10 +215,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │   │   └── reader_configuration.py
 │   ├── main.py
 │   ├── reader
-│   │   │   ├── data_processor.cpython-311.pyc
-│   │   │   ├── evaluation.cpython-311.pyc
-│   │   │   ├── model.cpython-311.pyc
-│   │   │   └── trainer_qa.cpython-311.pyc
 │   │   ├── add_nouns.py
 │   │   ├── aug_korquad.py
 │   │   ├── data_controller
@@ -264,9 +258,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │       ├── tokenizer_checker.py
 │       └── tokenizer_validator.py
 └── test
-    │   ├── conftest.cpython-311-pytest-8.3.3.pyc
-    │   ├── test_model.cpython-311-pytest-8.3.3.pyc
-    │   └── test_reader.cpython-311-pytest-8.3.3.pyc
     ├── conftest.py
     ├── test_data_handler.py
     ├── test_data_postprocessor.py
