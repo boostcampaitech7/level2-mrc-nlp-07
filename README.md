@@ -149,7 +149,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
   <img src="docs/modules/utils.png" alt="Utils Module" width="600">
 
 #### Retriever  
-  <img src="docs/modules/embedding.png" alt="Retriever Module" width="600">
+  <img src="docs/modules/embedding.png" alt="Retriever Module" width="400">
 
 ## 프로젝트 결과
 ||Public|Private|
