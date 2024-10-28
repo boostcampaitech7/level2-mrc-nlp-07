@@ -100,9 +100,6 @@ class SparseRetrieval:
         
         self.original_docs = list(dict.fromkeys([v["text"] for v in wiki.values()]))
         self.cleaned_docs = [self.clean_text(doc) for doc in self.original_docs]
-        print(f'original_docs : {self.original_docs[416][:100]}')
-        print(f'cleaned_docs : {self.cleaned_docs[416][:100]}')
-    # 
     # 원본 텍스트와 정제된 텍스트의 매핑 사전 생성
         print(f"Lengths of unique contexts : {len(self.original_docs)}")
         #self.ids = list(range(len(self.docs)))
