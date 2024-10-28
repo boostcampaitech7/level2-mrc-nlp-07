@@ -292,23 +292,48 @@ class SparseRetrieval:
         return doc_scores, doc_indices
     
     def get_score(self, df):
+        """
+        Summary:
+            Retriever 결과에 대해 출력하는 함수로, Correct는 정답이 Retrieval 결과에 포함됬는지 나타내는 갑이며,
+            Reverse_Rank는 정답 인덱스의 역수로 0이면 1, 1이면 0.5의 값을 가진다.
+            linear는 Reverse rank를 역수가 아닌 각 index마다 간격을 동일하게 주어
+        """
         df["correct"] = df.apply(check_original_in_context, axis=1)
         df["rmm_score"] = df.apply(calculate_reverse_rank_score, axis=1)
         df["linear_score"] = df.apply(calculate_linear_score, axis=1)
         print(
-            "correct retrieval",
-            df["correct"].sum() / len(df),
+            "correct retrieval:",
+            round(df["correct"].sum() / len(df)),
         )
         print(
-            "reverse rank retrieval",
-            df["rmm_score"].sum() / len(df)
+            "reverse rank retrieval:",
+            round(df["rmm_score"].sum() / len(df))
         )
         print(
-            "linear retrieval",
-            df["linear_score"].sum() / len(df)
+            "linear retrieval:",
+            round(df["linear_score"].sum() / len(df))
         )
-        #df['length'] = df['retrieval_context'].apply(lambda x: len(x))
-
+        total_true_count = df['correct'].sum()
+        total_count = len(df)
+        total_false_count = total_count - total_true_count
+        total_true_ratio = (total_true_count / total_count) * 100
+        total_false_ratio = (total_false_count / total_count) * 100
+        
+        print("=== 전체 데이터셋 통계 ===")
+        print(f"전체 질문 수: {total_count}")
+        print(f"정답 수 (True): {total_true_count} ({total_true_ratio:.2f}%)")
+        print(f"오답 수 (False): {total_false_count} ({total_false_ratio:.2f}%)")
+    
+        print("\n=== 영어 포함 질문 통계 ===")
+        english_questions = df[df['question'].str.contains('[a-zA-Z]', regex=True)]
+        true_count = english_questions['correct'].sum()
+        total_count = len(english_questions)
+        false_count = total_count - true_count
+        true_ratio = (true_count / total_count) * 100
+        false_ratio = (false_count / total_count) * 100
+        print(f"영어가 포함된 질문 수: {total_count}")
+        print(f"정답 수 (True): {true_count} ({true_ratio:.2f}%)")
+        print(f"오답 수 (False): {false_count} ({false_ratio:.2f}%)")
         
     def compute_l2_distance(query_vec, passage_vec) -> np.ndarray:
         """ 
