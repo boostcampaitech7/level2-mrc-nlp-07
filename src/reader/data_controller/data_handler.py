@@ -10,8 +10,6 @@ from transformers import TrainingArguments
 
 from src.reader.data_controller.data_processor import DataProcessor
 from src.utils.arguments import DataTrainingArguments
-from src.utils.constants import key_names
-
 
 class DataHandler():
     def __init__(self, data_args: DataTrainingArguments, train_args: TrainingArguments, tokenizer: AutoTokenizer, datasets: Dataset, postprocessor: DataProcessor, preprocessor: DataProcessor) -> None:

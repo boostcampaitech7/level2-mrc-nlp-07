@@ -8,8 +8,7 @@ from transformers import is_datasets_available
 from transformers import is_torch_xla_available
 from transformers import Trainer
 
-from src.utils.constants.key_names import EVALUATION_DESCRIPTION
-from src.utils.constants.key_names import PREDICTION_DESCRIPTION
+from src.config.key_names import EVALUATION_DESCRIPTION, PREDICTION_DESCRIPTION
 
 if is_datasets_available():
     import datasets
