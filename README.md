@@ -37,6 +37,7 @@
 * ㄴ 모델 결합 및 LLM 실험: 10.17(목) ~ 10.21(월)
 * ㄴ 모델 선정 및 하이퍼파라미터 튜닝: 10.19(토) ~ 10.23(수)
 
+  <img src="./docs/image/README/세부 일정.png">
 
 ## 😁팀소개
 
@@ -158,14 +159,14 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 
 ## 프로젝트 아키텍쳐
-* 소프트웨어 아키텍처
-  * Reader
-    ![reader.png](docs/modules/reader.png)
-  * Utils
-    ![utils.png](docs/modules/utils.png)
-  * Retriever
-    ![embedding.png](docs/modules/embedding.png)
+#### Reader  
+  <img src="docs/modules/reader.png" alt="Reader Module" width="600">
 
+#### Utils  
+  <img src="docs/modules/utils.png" alt="Utils Module" width="600">
+
+#### Retriever  
+  <img src="docs/modules/embedding.png" alt="Retriever Module" width="400">
 
 ## 프로젝트 결과
 ||Public|Private|
@@ -195,7 +196,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 ### A.2 협업 및 프로젝트 관리 도구
 
 - **GitHub**: 코드 버전 관리 및 협업. GitHub Flow를 통해 기능 단위로 브랜치를 관리하고, 코드 리뷰를 진행.
-- **JIRA**: 프로젝트 관리 및 작업 할당. 각 팀원의 작업 현황과 이슈를 트래킹하며, Sprint 계획을 수립.
 - **Notion**: 팀 회의록, 실험 결과 기록, 프로젝트 진행 상황 문서화에 사용.
 - **Slack & Zoom**: 팀원 간의 원활한 커뮤니케이션 및 화상 회의 도구.
 
@@ -210,7 +210,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 - **Python 3.8**: 모든 코드 구현의 기본 환경.
 - **PyTorch 1.10**: Dense Embedding과 Reader 모델 구현에 사용.
-- **CUDA 11.4**: GPU 가속을 위한 딥러닝 프레임워크 설정.
 - **Hugging Face Datasets & Tokenizers**: 데이터 로드 및 전처리, 토크나이징 도구.
 
 ## C. 프로젝트 구조
@@ -221,9 +220,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 ├── notebook
 │   ├── Data_preprocessing.ipynb
 │   ├── EDA_with_LLM.ipynb
-│   ├── autoEDA.txt
 │   ├── dataeda.ipynb
-│   ├── requirements.txt
 │   ├── single_stage_ODQA.ipynb
 │   └── test.ipynb
 ├── src
@@ -233,10 +230,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │   │   └── reader_configuration.py
 │   ├── main.py
 │   ├── reader
-│   │   │   ├── data_processor.cpython-311.pyc
-│   │   │   ├── evaluation.cpython-311.pyc
-│   │   │   ├── model.cpython-311.pyc
-│   │   │   └── trainer_qa.cpython-311.pyc
 │   │   ├── add_nouns.py
 │   │   ├── aug_korquad.py
 │   │   ├── data_controller
@@ -280,9 +273,6 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │       ├── tokenizer_checker.py
 │       └── tokenizer_validator.py
 └── test
-    │   ├── conftest.cpython-311-pytest-8.3.3.pyc
-    │   ├── test_model.cpython-311-pytest-8.3.3.pyc
-    │   └── test_reader.cpython-311-pytest-8.3.3.pyc
     ├── conftest.py
     ├── test_data_handler.py
     ├── test_data_postprocessor.py
