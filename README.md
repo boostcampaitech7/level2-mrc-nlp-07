@@ -184,8 +184,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 ## Getting Started
 
-main.py를 실행한다.
-
+* main.py를 사용하여 실행.
 ```bash
 python main.py
 ```
