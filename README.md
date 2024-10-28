@@ -201,6 +201,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 프로젝트의 디렉토리 구조는 다음과 같이 설계되었습니다.
 
+```text
 ├── notebook
 │   ├── Data_preprocessing.ipynb
 │   ├── EDA_with_LLM.ipynb
@@ -271,7 +272,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
     ├── test_data_postprocessor.py
     ├── test_data_preprocessor.py
     └── test_model.py
-
+```
 
 ## D. 실험 결과 데이터
 
