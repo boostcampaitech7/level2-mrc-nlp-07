@@ -57,6 +57,14 @@
     <td>야구를 볼 수 있는 채은</td>
     <td>오리는 꽥꽥 재덕</td>
   </tr>
+   <tr>
+    <td>Project Manager, 통합 관리 모듈, 리더의 리더</td>
+    <td>EDA, 데이터 분화, 기타 실험, 데이터 전처리</td>
+    <td>Sparse 임베딩 구현, 기술 지원,</td>
+    <td>모니터링 툴, 테스트 코드, 모델 결합 및 실험</td>
+    <td>팀 리더, retriever 팀장, Dense 임베딩 구현, Data 정제</td>
+    <td>데이터 전/후처리, 모델 결합 및 실험</td>
+  </tr>
 </table>
 
 [Wrap-Up Report](https://www.notion.so/gamchan/5c77dba89bda4d19a2fa833929c297dd?pvs=4)
