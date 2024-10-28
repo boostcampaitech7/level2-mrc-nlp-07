@@ -2,40 +2,44 @@
 
 ## 📕프로젝트 개요
 
-* 부스트캠프 AI Tech `NLP` 트랙에서 개체된 level 2 대회
-* `Linking MRC and Retrieval: Open-domain Question Answering(ODQA)` Task.
-  * ODQA: 지문이 따로 주어지지 않은 채로 방대한 World Knowledge에 기반하여 질의응답
-  * 질문에 관련된 문서를 찾는 `retriever`와 문서를 읽고 적절한 답변을 찾거나 만드는 `reader`의 `two-stage`로 구성.
-* 학습 데이터셋은 3,952개, 검증 데이터는 240개, 테스트 데이터는 600개로 테스트 데이터 중 40%만 Public으로 반영 대회 종료 후 Private 점수가 공개됨.
-  * `id` : 질문의 고유 id
-  * `question` : 질문
-  * `answers` : 답변에 대한 정보, 하나의 질문에 하나의 답변만 존재.
-    * `answer_start` : 답변의 시작 위치
-    * `text` : 답변의 텍스트
-  * `context` : 답변이 포함된 문서
-  * `title` : 문서의 제목
-  * `document_id` : 문서의 고유 id
+- 부스트캠프 AI Tech `NLP` 트랙에서 개체된 level 2 대회
+- `Linking MRC and Retrieval: Open-domain Question Answering(ODQA)` Task.
+  - ODQA: 지문이 따로 주어지지 않은 채로 방대한 World Knowledge에 기반하여 질의응답
+  - 질문에 관련된 문서를 찾는 `retriever`와 문서를 읽고 적절한 답변을 찾거나 만드는 `reader`의 `two-stage`로 구성.
+- 학습 데이터셋은 3,952개, 검증 데이터는 240개, 테스트 데이터는 600개로 테스트 데이터 중 40%만 Public으로 반영 대회 종료 후 Private 점수가 공개됨.
 
-* `Exact Match`, `F1 Score`를 통한 평가.
+  - `id` : 질문의 고유 id
+  - `question` : 질문
+  - `answers` : 답변에 대한 정보, 하나의 질문에 하나의 답변만 존재.
+    - `answer_start` : 답변의 시작 위치
+    - `text` : 답변의 텍스트
+  - `context` : 답변이 포함된 문서
+  - `title` : 문서의 제목
+  - `document_id` : 문서의 고유 id
+
+- `Exact Match`, `F1 Score`를 통한 평가.
 
 ## 📆세부일정
 
 #### 공통
-* 프로젝트 기간(4주) : 09.30(월) ~ 10.24(목)
-* 자료조사: 9.30(월) ~ 10.06(일)
-* 강의 수강 및 과제 진행: 10.01(화) ~ 10.10(목)
-* 데이터 EDA: 10.07(월) ~ 10.10(목)
+
+- 프로젝트 기간(4주) : 09.30(월) ~ 10.24(목)
+- 자료조사: 9.30(월) ~ 10.06(일)
+- 강의 수강 및 과제 진행: 10.01(화) ~ 10.10(목)
+- 데이터 EDA: 10.07(월) ~ 10.10(목)
 
 #### Retriever 팀
-* Sparse 및 Dense 구현: 10.11(금) ~ 10.13(일)
-* Sparse 및 Dense 고도화: 10.14(월) ~ 10.16(수)
-* Re-ranking 실험 및 하이퍼파라미터 튜닝: 10.17(목) ~ 10.23(수)
+
+- Sparse 및 Dense 구현: 10.11(금) ~ 10.13(일)
+- Sparse 및 Dense 고도화: 10.14(월) ~ 10.16(수)
+- Re-ranking 실험 및 하이퍼파라미터 튜닝: 10.17(목) ~ 10.23(수)
 
 #### Reader 팀
-* Reader 구조 설정 : 10.11(금) ~ 10.13(일)
-* Reader 재구성 및 베이스라인 수립: 10.14(월) ~ 10.16(수)
-* 모델 결합 및 LLM 실험: 10.17(목) ~ 10.21(월)
-* 모델 선정 및 하이퍼파라미터 튜닝: 10.19(토) ~ 10.23(수)
+
+- Reader 구조 설정 : 10.11(금) ~ 10.13(일)
+- Reader 재구성 및 베이스라인 수립: 10.14(월) ~ 10.16(수)
+- 모델 결합 및 LLM 실험: 10.17(목) ~ 10.21(월)
+- 모델 선정 및 하이퍼파라미터 튜닝: 10.19(토) ~ 10.23(수)
 
 <img src="./docs/image/README/세부 일정.png">
 
@@ -83,7 +87,6 @@
     <td>데이터 전/후처리, 모델 결합 및 실험</td>
   </tr>
 </table>
-
 
 ## 프로젝트 수행 절차 및 방법
 
@@ -157,26 +160,50 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 최종 리더보드에서 EM 및 F1 점수 기준으로 모델의 성능을 평가하였으며, Sparse Embedding을 활용한 Retrieval 단계가 최종적으로 높은 성능을 보였습니다. 또한, 팀의 협업 경험과 코드 리팩토링을 통해 얻은 성과들을 바탕으로 프로젝트 전반에 걸친 성과를 분석하고, 향후 개선할 부분을 도출하였습니다.
 
-
 ## 프로젝트 아키텍쳐
+
 #### Reader
+
   <img src="docs/modules/reader.png" alt="Reader Module" width="600">
 
 #### Utils
+
   <img src="docs/modules/utils.png" alt="Utils Module" width="600">
 
 #### Retriever
+
   <img src="docs/modules/embedding.png" alt="Retriever Module" width="400">
 
 ## 프로젝트 결과
-||Public|Private|
-|:-:|:-:|:-:|
-|EM|45.4200%|58.3500%|
-|F1|46.3900%|56.9700%|
-|최종 등수|16등|16등|
 
+|           |  Public  | Private  |
+| :-------: | :------: | :------: |
+|    EM     | 45.4200% | 58.3500% |
+|    F1     | 46.3900% | 56.9700% |
+| 최종 등수 |   16등   |   16등   |
 
 ## Getting Started
+
+main.py를 실행한다.
+
+```bash
+python main.py
+```
+
+이때 데이터 셋과 학습모델, 추론 파일의 출력 경로는 'src/config/path_config.py'에 저장되어 있다.
+
+'''python
+data_path = "./data/"
+wiki_path = "./data/filtered_wiki.json"
+train_data = "./data/train_dataset"
+test_data = "./data/test_dataset"
+outputs = 출력경로
+'''
+
+또한 'src/utils/arguments.py'의 model_args.model_name_or_path를 수정해 학습에 사용되는 모델을 수정할 수 있으며,
+training_args를 수정해 하이퍼파라미터를 조정 가능하다.
+
+평가/추론 결과는 OUTPUT_PATH에 저장된다.
 
 # Appendix
 
@@ -285,11 +312,11 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 다양한 Sparse 및 Dense Embedding 기법의 성능 비교 실험 결과는 아래와 같습니다.
 
-| Model                  | Top-K | context_in_retriever | Reverse Rank | Linear Score |
-|------------------------|-------|----------------------|--------------|--------------|
-| BM25 (max_feature=200K) | 10    | 0.82490              | 0.47262      | 0.74090      |
-| TF-IDF (max_feature=100K) | 5    | 0.67055              | 0.33891      | 0.57221      |
-| Dense Embedding (BERT) | 10    | 0.19680              | -            | -            |
+| Model                     | Top-K | context_in_retriever | Reverse Rank | Linear Score |
+| ------------------------- | ----- | -------------------- | ------------ | ------------ |
+| BM25 (max_feature=200K)   | 10    | 0.82490              | 0.47262      | 0.74090      |
+| TF-IDF (max_feature=100K) | 5     | 0.67055              | 0.33891      | 0.57221      |
+| Dense Embedding (BERT)    | 10    | 0.19680              | -            | -            |
 
 위 표는 주요 실험 결과의 요약본이며, 각 실험의 파라미터 설정과 결과는 데이터 구조를 통해 체계적으로 관리하였습니다. 이를 통해 Sparse Embedding의 우수한 성능을 바탕으로 최종 모델에 BM25 기반의 Retrieval 시스템을 채택하였습니다.
 
@@ -297,12 +324,12 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 Reader 모델의 성능은 여러 pre-trained 모델과의 비교를 통해 최적의 모델을 선정하였습니다.
 
-| Pre-trained Model                 | EM Score | F1 Score |
-|-----------------------------------|----------|----------|
-| klue/roberta-base                 | 62.5     | 71.1069  |
-| monologg/koelectra-base-v3        | 61.25    | 69.2452  |
-| microsoft/deberta-v3-base         | 46.25    | 54.1471  |
-| klue/bert-base                    | 53.75    | 62.3042  |
+| Pre-trained Model          | EM Score | F1 Score |
+| -------------------------- | -------- | -------- |
+| klue/roberta-base          | 62.5     | 71.1069  |
+| monologg/koelectra-base-v3 | 61.25    | 69.2452  |
+| microsoft/deberta-v3-base  | 46.25    | 54.1471  |
+| klue/bert-base             | 53.75    | 62.3042  |
 
 최종적으로 `klue/roberta-base` 모델이 최적의 성능을 보여주었으며, 이를 기반으로 추가적인 하이퍼파라미터 튜닝을 진행하였습니다.
 
