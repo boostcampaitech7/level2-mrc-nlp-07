@@ -2,7 +2,6 @@ import pickle
 from collections import Counter
 from typing import List
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
 from tqdm import tqdm
 import src.retriever.embedding as embedding_function
 
