@@ -159,13 +159,13 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 
 ## 프로젝트 아키텍쳐
-#### Reader  
+#### Reader
   <img src="docs/modules/reader.png" alt="Reader Module" width="600">
 
-#### Utils  
+#### Utils
   <img src="docs/modules/utils.png" alt="Utils Module" width="600">
 
-#### Retriever  
+#### Retriever
   <img src="docs/modules/embedding.png" alt="Retriever Module" width="400">
 
 ## 프로젝트 결과
@@ -217,12 +217,9 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 프로젝트의 디렉토리 구조는 다음과 같이 설계되었습니다.
 
 ```text
-├── notebook
-│   ├── Data_preprocessing.ipynb
-│   ├── EDA_with_LLM.ipynb
-│   ├── dataeda.ipynb
-│   ├── single_stage_ODQA.ipynb
-│   └── test.ipynb
+├── data_analysis
+│   ├── manual_data_analysis.ipynb
+│   └── outlier_handling_with_LLM.ipynb
 ├── src
 │   ├── config
 │   │   ├── key_names.py
@@ -232,6 +229,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │   ├── reader
 │   │   ├── add_nouns.py
 │   │   ├── aug_korquad.py
+│   │   ├── LLM_reader.ipynb
 │   │   ├── data_controller
 │   │   │   ├── data_handler.py
 │   │   │   ├── data_processor.py
