@@ -9,7 +9,6 @@ from scipy.sparse import save_npz, load_npz, vstack
 from src.utils.timer import timer
 from src.retriever.embedding.sparse_embedding import SparseEmbedding
 from src.retriever.score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
-from src.retriever.similarity.similarity import ComputeSimilarity
 import re
 from scipy.spatial.distance import cdist
 
