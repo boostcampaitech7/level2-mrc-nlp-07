@@ -189,20 +189,18 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 python main.py
 ```
 
-이때 데이터 셋과 학습모델, 추론 파일의 출력 경로는 'src/config/path_config.py'에 저장되어 있다.
+* 이때 데이터 셋과 학습모델, 추론 파일의 출력 경로는 'src/config/path_config.py'에 저장되어 있다.
 
-'''python
+```python
 data_path = "./data/"
 wiki_path = "./data/filtered_wiki.json"
 train_data = "./data/train_dataset"
 test_data = "./data/test_dataset"
-outputs = 출력경로
-'''
-
-또한 'src/utils/arguments.py'의 model_args.model_name_or_path를 수정해 학습에 사용되는 모델을 수정할 수 있으며,
+outputs = "./outputs"
+```
+* 또한 'src/utils/arguments.py'의 model_args.model_name_or_path를 수정해 학습에 사용되는 모델을 수정할 수 있으며,
 training_args를 수정해 하이퍼파라미터를 조정 가능하다.
-
-평가/추론 결과는 OUTPUT_PATH에 저장된다.
+* 평가/추론 결과는 OUTPUT_PATH에 저장된다.
 
 # Appendix
 
