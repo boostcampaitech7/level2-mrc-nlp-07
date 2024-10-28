@@ -48,39 +48,39 @@ def retriever():
 
 
 def reader():
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
-    model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-
     # CSV 파일에서 데이터 로드
-    train_retriever_dataset = load_dataset('csv', data_files=SAVE_TRAIN_PATH)
+    print("*" * 40,'Data Loading',"*" * 40)
+    train_retriever_dataset = load_dataset('csv', data_files=str(SAVE_TRAIN_PATH))
+    print(train_retriever_dataset)
+    
+    train_retriever_dataset[key_names.TRAIN] = train_retriever_dataset[key_names.TRAIN]\
+        .remove_columns(key_names.REMOVE_COLUMNS_FROM_RETRIEVER)\
+        .rename_column(key_names.RETRIEVAL_CONTEXT, key_names.CONTEXT)
 
     # DatasetDict로 train과 validation을 정의
     train_dataset_dict = DatasetDict({
         key_names.TRAIN: train_retriever_dataset[key_names.TRAIN],  # 'train' 스플릿으로 지정
-        key_names.VALIDATION: train_retriever_dataset[key_names.VALIDATION]  # 'validation' 스플릿으로 지정
+        key_names.VALIDATION: train_retriever_dataset[key_names.TRAIN]  # 'validation' 스플릿으로 지정
     })
 
     # 불필요한 컬럼 제거 및 'retrieval_context'를 'context'로 변경
-    train_dataset_dict[key_names.TRAIN] = train_dataset_dict[key_names.TRAIN]\
-        .remove_columns(key_names.REMOVE_COLUMNS_FROM_RETRIEVER)\
-        .rename_column(key_names.RETRIEVAL_CONTEXT, key_names.CONTEXT)
-
+    
     # 'answers' 필드를 파싱하여 딕셔너리로 변환하는 함수
     def process_answers(example):
         # 'answers' 필드가 문자열로 저장된 경우 이를 딕셔너리로 변환
-        if isinstance(example[key_names.ANSWER], str):
-            example[key_names.ANSWER] = ast.literal_eval(example[key_names.ANSWER])
+        if isinstance(example[key_names.ANSWERS], str):
+            example[key_names.ANSWERS] = ast.literal_eval(example[key_names.ANSWERS])
         return example
 
     # 'answers' 필드를 처리하여 파싱
     train_dataset_dict[key_names.TRAIN] = train_dataset_dict[key_names.TRAIN].map(process_answers)
 
-    # output_dir은 training_args에 설정된 값을 사용
-    print('Output directory:', training_args.output_dir)
-
     # Argument 설정
+    print("*" * 40,'Checking ModelArguments',"*" * 40)
     model_args = ModelArguments()
+    print("*" * 40,'Checking DataTrainingArguments',"*" * 40)
     data_args = DataTrainingArguments()
+    print("*" * 40,'Checking TrainingArugments',"*" * 40)
     training_args = TrainingArguments(output_dir=OUTPUT_PATH)
 
     # 학습/평가/추론 설정
