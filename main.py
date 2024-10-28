@@ -1,12 +1,10 @@
 from __future__ import annotations
-
 import ast
-
-from reader.model.reader import Reader
+from src.reader.model.reader import Reader
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
-from utils.arguments import DataTrainingArguments
-from utils.arguments import ModelArguments
+from src.utils.arguments import DataTrainingArguments
+from src.utils.arguments import ModelArguments
 from datasets import concatenate_datasets, load_from_disk
 from src.retriever.retrieval.sparse_retrieval import SparseRetrieval
 from transformers import AutoTokenizer
