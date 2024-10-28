@@ -34,12 +34,12 @@
     <th>서재덕</th>
   </tr>
   <tr>
-    <td><img src="./docs/image/README/꼬부기1.png" alt="꼬부기1" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기2.png" alt="꼬부기2" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기3.png" alt="꼬부기3" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기4.png" alt="꼬부기4" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기5.png" alt="꼬부기5" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기6.png" alt="꼬부기6" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기1.png" alt="꼬부기1" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기2.png" alt="꼬부기2" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기3.png" alt="꼬부기3" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기4.png" alt="꼬부기4" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기5.png" alt="꼬부기5" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기6.png" alt="꼬부기6" width="100" height="100"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/gsgh3016">@감찬</a></td>
