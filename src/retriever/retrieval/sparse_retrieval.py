@@ -11,7 +11,8 @@ from src.retriever.embedding.sparse_embedding import SparseEmbedding
 from src.retriever.score.ranking import check_original_in_context, calculate_reverse_rank_score, calculate_linear_score
 from src.retriever.similarity.similarity import ComputeSimilarity
 import re
- 
+from scipy.spatial.distance import cdist
+
 
 class SparseRetrieval:
     def __init__(
@@ -116,7 +117,7 @@ class SparseRetrieval:
         Args:
             mode (str): 임베딩 방법 선택
                 - 'tfidf': scikit-learn의 TF-IDF
-                - 'my_tfidf': 직접 구현한 TF-IDF
+                - 'our_tfidf': 직접 구현한 TF-IDF
                 - 'bm25': 직접 구현한 BM25
         """
         if os.path.isfile(self.emd_path) and os.path.isfile(self.sparse_path):

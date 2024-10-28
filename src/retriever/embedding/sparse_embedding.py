@@ -13,7 +13,7 @@ class SparseEmbedding:
         tokenizer=None, 
         ngram_range:tuple=(1,2), 
         max_features:int=50000,
-        mode: str = 'tfidf', 
+        mode: str = 'bm25', 
         k1: float = 1.1,
         b: float = 0.5,
         ):
@@ -23,7 +23,7 @@ class SparseEmbedding:
             tokenizer (_type_, optional): 토크나이저 함수. Defaults to None이면 한국어 명사 추출기 사용.
             ngram_range (tuple, optional): n-gram 범위. Defaults to (1,2).
             max_features (int, optional): 최대 특성 개수. Defaults to 50000.
-            mode (str, optional): 임베딩 모드. Defaults to 'tfidf'.
+            mode (str, optional): 임베딩 모드. Defaults to 'bm25'.
             k1 (float, optional): BM25 파라미터. Defaults to 1.1.
             b (float, optional): BM25 파라미터. Defaults to 0.5.
         """
@@ -53,7 +53,7 @@ class SparseEmbedding:
                 max_features=self.max_features,
             )
 
-        elif self.mode == 'my_tfidf':
+        elif self.mode == 'our_tfidf':
             self.embedding_function = embedding_function.Tfidf(
                 vocab=self.vocab,
                 doc_freqs=self.doc_freqs,
