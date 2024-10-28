@@ -52,7 +52,7 @@ def reader():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # CSV 파일에서 데이터 로드
-    train_retriever_dataset = load_dataset('csv', data_files='data/train.csv')
+    train_retriever_dataset = load_dataset('csv', data_files=SAVE_TEST_PATH)
 
     # DatasetDict로 train과 validation을 정의
     train_dataset_dict = DatasetDict({
