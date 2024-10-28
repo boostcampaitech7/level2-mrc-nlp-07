@@ -2,7 +2,7 @@
 
 ## 📕프로젝트 개요
 
-* 부스트캠프 AI Tech `NLP`분야에서 개체된 level 2 대회
+* 부스트캠프 AI Tech `NLP` 트랙에서 개체된 level 2 대회
 * `Linking MRC and Retrieval: Open-domain Question Answering(ODQA)` Task.
   * ODQA: 지문이 따로 주어지지 않은 채로 방대한 World Knowledge에 기반하여 질의응답
   * 질문에 관련된 문서를 찾는 `retriever`와 문서를 읽고 적절한 답변을 찾거나 만드는 `reader`의 `two-stage`로 구성.
@@ -58,21 +58,36 @@
     <td>오리는 꽥꽥 재덕</td>
   </tr>
 </table>
+[Wrap-Up Report](https://www.notion.so/gamchan/5c77dba89bda4d19a2fa833929c297dd?pvs=4)
 
 ## 프로젝트 수행 절차 및 방법
+데이터 준비: train, validation, test로 나눈 데이터셋을 사용하여 학습과 평가를 위한 기본 데이터를 구축하였습니다. 약 57,000개의 위키피디아 문서로 검색기(retriever)를 훈련하였습니다.
+
+검색기 개발:
+
+희소 기반: TF-IDF 및 BM25를 통해 빠르고 정확한 희소 검색 구현.
+밀집 기반: Dense Embedding을 적용하여 의미 유사성을 바탕으로 검색 성능을 개선.
+읽기기 개발: 각 검색 결과에서 정확한 답을 도출하기 위해 기계 독해 모델을 구축하여 훈련.
+
+평가 및 개선: Rank 및 다양한 평가 메트릭을 사용하여 검색 성능을 측정하고, 검색기와 읽기기의 성능을 최적화하였습니다.
+
+코드 구조 최적화: 객체 지향 설계를 통해 유지보수성과 확장성을 높였습니다.
+
 
 ## 프로젝트 아키텍쳐
 
 
 ## 프로젝트 결과
+||Public|Private|
+|:-:|:-:|:-:|
+|EM|45.4200%|58.3500%|
+|F1|46.3900%|56.9700%|
+|최종 등수|16등|16등|
+
 
 ## Getting Started
 
 ## Appendix
-
-||Ensemble 전|Ensemble 후|
-|:-:|:-:|:-:|
-|pearson 점수|0.9175|0.9360|
 
 ### 프로젝트 폴더 구조
 
@@ -80,4 +95,3 @@
 
 * Notion
 * Git
-* Jira
