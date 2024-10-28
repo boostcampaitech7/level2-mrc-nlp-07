@@ -142,14 +142,20 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 
 ## 프로젝트 아키텍쳐
-* 소프트웨어 아키텍처
-  * Reader
-    ![reader.png](docs/modules/reader.png)
-  * Utils
-    ![utils.png](docs/modules/utils.png)
-  * Retriever
-    ![embedding.png](docs/modules/embedding.png)
+#### Reader
+<p align="center">
+  <img src="docs/modules/reader.png" alt="Reader Module" width="600">
+</p>
 
+#### Utils
+<p align="center">
+  <img src="docs/modules/utils.png" alt="Utils Module" width="600">
+</p>
+
+#### Retriever
+<p align="center">
+  <img src="docs/modules/embedding.png" alt="Retriever Module" width="600">
+</p>
 
 ## 프로젝트 결과
 ||Public|Private|
