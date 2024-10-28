@@ -1,14 +1,14 @@
 from datasets import concatenate_datasets, load_from_disk
 from src.retriever.retrieval.sparse_retrieval import SparseRetrieval
 from transformers import AutoTokenizer
-from src.config.path_config import TRAIN_DATA_PATH, TEST_DATA_PATH, SAVE_TRAIN_PATH, SAVE_TEST_PATH
+from src.config.path_config import *
 
 
 tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
 retriever = SparseRetrieval(
     tokenize_fn=tokenizer.tokenize,
-    data_path="./data/",
-    context_path="filtered_wiki.json",
+    data_path= DATA_PATH,
+    context_path= WIKI_PATH,
     mode = "bm25",
     max_feature=1000000,
     ngram_range=(1,2),
