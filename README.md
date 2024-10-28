@@ -161,11 +161,153 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 ## Getting Started
 
-## Appendix
-[Wrap-Up Report](https://www.notion.so/gamchan/5c77dba89bda4d19a2fa833929c297dd?pvs=4)
+# Appendix
+
+## A. 주요 기술 스택 및 도구
+
+본 프로젝트에서 사용된 주요 기술과 도구는 다음과 같습니다.
+
+### A.1 개발 환경 및 라이브러리
+
+- **Python**: 프로젝트의 주요 프로그래밍 언어로, 데이터 처리 및 모델 구현에 활용.
+- **Hugging Face Transformers**: 다양한 NLP 모델의 학습 및 추론을 위한 프레임워크. Reader 모델 구현에 사용.
+- **Scikit-learn**: Sparse Embedding 및 데이터 전처리 실험에서 사용된 파이썬 머신러닝 라이브러리.
+- **PyTorch**: Dense Embedding 모델의 학습 및 튜닝을 위한 주요 딥러닝 프레임워크.
+- **LangChain & Ollama**: LLM을 활용한 데이터 이상치 탐지 및 질문 생성 실험에 사용.
+- **Jupyter Notebook**: EDA, 데이터 분석, 실험 결과 시각화에 활용.
+
+### A.2 협업 및 프로젝트 관리 도구
+
+- **GitHub**: 코드 버전 관리 및 협업. GitHub Flow를 통해 기능 단위로 브랜치를 관리하고, 코드 리뷰를 진행.
+- **JIRA**: 프로젝트 관리 및 작업 할당. 각 팀원의 작업 현황과 이슈를 트래킹하며, Sprint 계획을 수립.
+- **Notion**: 팀 회의록, 실험 결과 기록, 프로젝트 진행 상황 문서화에 사용.
+- **Slack & Zoom**: 팀원 간의 원활한 커뮤니케이션 및 화상 회의 도구.
+
+## B. 실험 환경 및 하드웨어
+
+### B.1 컴퓨팅 자원
+
+- **GPU (NVIDIA V100)**: Dense Embedding 모델 학습 및 Reader 모델 튜닝을 위해 사용.
+- **V100 서버**: 주로 훈련과 대규모 실험을 수행하며, 제한된 자원 내에서 효율적인 자원 활용을 위한 배치 실험 진행.
+
+### B.2 소프트웨어 환경
+
+- **Python 3.8**: 모든 코드 구현의 기본 환경.
+- **PyTorch 1.10**: Dense Embedding과 Reader 모델 구현에 사용.
+- **CUDA 11.4**: GPU 가속을 위한 딥러닝 프레임워크 설정.
+- **Hugging Face Datasets & Tokenizers**: 데이터 로드 및 전처리, 토크나이징 도구.
+
+## C. 프로젝트 구조
+
+프로젝트의 디렉토리 구조는 다음과 같이 설계되었습니다.
+
+├── notebook
+│   ├── Data_preprocessing.ipynb
+│   ├── EDA_with_LLM.ipynb
+│   ├── autoEDA.txt
+│   ├── dataeda.ipynb
+│   ├── requirements.txt
+│   ├── single_stage_ODQA.ipynb
+│   └── test.ipynb
+├── src
+│   ├── config
+│   │   ├── key_names.py
+│   │   ├── path_config.py
+│   │   └── reader_configuration.py
+│   ├── main.py
+│   ├── reader
+│   │   │   ├── data_processor.cpython-311.pyc
+│   │   │   ├── evaluation.cpython-311.pyc
+│   │   │   ├── model.cpython-311.pyc
+│   │   │   └── trainer_qa.cpython-311.pyc
+│   │   ├── add_nouns.py
+│   │   ├── aug_korquad.py
+│   │   ├── data_controller
+│   │   │   ├── data_handler.py
+│   │   │   ├── data_processor.py
+│   │   │   └── postprocess_qa.py
+│   │   ├── generate_q.py
+│   │   └── model
+│   │       ├── huggingface_manager.py
+│   │       ├── reader.py
+│   │       ├── result_saver.py
+│   │       ├── trainer_manager.py
+│   │       └── trainer_qa.py
+│   ├── retriever
+│   │   ├── embedding
+│   │   │   ├── bm25.py
+│   │   │   ├── sklearn_tfidf.py
+│   │   │   ├── sparse_embedding.py
+│   │   │   └── tfidf.py
+│   │   ├── retrieval
+│   │   │   ├── dense_retrieval.py
+│   │   │   └── sparse_retrieval.py
+│   │   ├── retriever.py
+│   │   ├── score
+│   │   │   ├── ranking.py
+│   │   │   └── rerank.py
+│   │   └── similarity
+│   │       └── similarity.py
+│   └── utils
+│       ├── argument_validator.py
+│       ├── arguments.py
+│       ├── context_into_articles.py
+│       ├── context_into_sentences.py
+│       ├── log
+│       │   └── logger.py
+│       ├── monitoring
+│       │   ├── bert_visualizer.py
+│       │   └── monitoring_tool.py
+│       ├── seed.py
+│       ├── timer.py
+│       ├── tokenizer_checker.py
+│       └── tokenizer_validator.py
+└── test
+    │   ├── conftest.cpython-311-pytest-8.3.3.pyc
+    │   ├── test_model.cpython-311-pytest-8.3.3.pyc
+    │   └── test_reader.cpython-311-pytest-8.3.3.pyc
+    ├── conftest.py
+    ├── test_data_handler.py
+    ├── test_data_postprocessor.py
+    ├── test_data_preprocessor.py
+    └── test_model.py
 
 
-### 협업방식
+## D. 실험 결과 데이터
 
-* Notion
-* Git
+### D.1 Retrieval 성능 실험 결과
+
+다양한 Sparse 및 Dense Embedding 기법의 성능 비교 실험 결과는 아래와 같습니다.
+
+| Model                  | Top-K | context_in_retriever | Reverse Rank | Linear Score |
+|------------------------|-------|----------------------|--------------|--------------|
+| BM25 (max_feature=200K) | 10    | 0.82490              | 0.47262      | 0.74090      |
+| TF-IDF (max_feature=100K) | 5    | 0.67055              | 0.33891      | 0.57221      |
+| Dense Embedding (BERT) | 10    | 0.19680              | -            | -            |
+
+위 표는 주요 실험 결과의 요약본이며, 각 실험의 파라미터 설정과 결과는 데이터 구조를 통해 체계적으로 관리하였습니다. 이를 통해 Sparse Embedding의 우수한 성능을 바탕으로 최종 모델에 BM25 기반의 Retrieval 시스템을 채택하였습니다.
+
+### D.2 Reader 성능 실험 결과
+
+Reader 모델의 성능은 여러 pre-trained 모델과의 비교를 통해 최적의 모델을 선정하였습니다.
+
+| Pre-trained Model                 | EM Score | F1 Score |
+|-----------------------------------|----------|----------|
+| klue/roberta-base                 | 62.5     | 71.1069  |
+| monologg/koelectra-base-v3        | 61.25    | 69.2452  |
+| microsoft/deberta-v3-base         | 46.25    | 54.1471  |
+| klue/bert-base                    | 53.75    | 62.3042  |
+
+최종적으로 `klue/roberta-base` 모델이 최적의 성능을 보여주었으며, 이를 기반으로 추가적인 하이퍼파라미터 튜닝을 진행하였습니다.
+
+## E. 추가 참고 문헌 및 자료
+
+- **BM25 알고리즘**: Stephen E. Robertson, Karen Sparck Jones, "Relevance weighting of search terms," Journal of the American Society for Information Science, 1976.
+- **Dense Passage Retrieval**: Vladimir Karpukhin et al., "Dense Passage Retrieval for Open-Domain Question Answering," arXiv, 2020.
+- **BERT**: Jacob Devlin et al., "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding," arXiv, 2019.
+- **Hugging Face Documentation**: [Hugging Face Docs](https://huggingface.co/docs/)
+- **LangChain**: [LangChain Official Website](https://www.langchain.com/)
+
+---
+
+본 Appendix는 프로젝트의 전반적인 구성, 실험 환경, 기술 스택, 그리고 데이터 관리 방식을 이해하는 데 도움을 주기 위해 작성되었습니다. 각 요소는 실험의 재현 가능성을 높이고, 향후 프로젝트에서 참조할 수 있도록 체계적으로 기록하였습니다.
