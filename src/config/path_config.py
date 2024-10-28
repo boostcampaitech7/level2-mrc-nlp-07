@@ -8,6 +8,7 @@ train_data = "./data/train_dataset"
 test_data = "./data/test_dataset"
 train_name = "train.csv"
 test_name = "test.csv"
+outputs = "./outputs"
 
 DATA_PATH = Path(BASE, data_path)
 WIKI_PATH = Path(BASE, wiki_path)

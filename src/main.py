@@ -12,7 +12,7 @@ from src.retriever.retrieval.sparse_retrieval import SparseRetrieval
 from transformers import AutoTokenizer
 from src.config.path_config import *
 from datasets import load_dataset, DatasetDict
-from src.utils.constants import column_names
+from src.config import key_names
 
 def retriever():
     tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
@@ -56,23 +56,24 @@ def reader():
 
     # DatasetDict로 train과 validation을 정의
     train_dataset_dict = DatasetDict({
-        column_names.TRAIN: train_retriever_dataset[column_names.TRAIN]  # 'train' 스플릿으로 지정
+        key_names.TRAIN: train_retriever_dataset[key_names.TRAIN],  # 'train' 스플릿으로 지정
+        key_names.VALIDATION: train_retriever_dataset[key_names.VALIDATION]  # 'validation' 스플릿으로 지정
     })
 
     # 불필요한 컬럼 제거 및 'retrieval_context'를 'context'로 변경
-    train_dataset_dict[column_names.TRAIN] = train_dataset_dict[column_names.TRAIN]\
-        .remove_columns(column_names.REMOVE_COLUMNS_FROM_RETRIEVER)\
-        .rename_column(column_names.RETRIEVAL_CONTEXT, column_names.CONTEXT)
+    train_dataset_dict[key_names.TRAIN] = train_dataset_dict[key_names.TRAIN]\
+        .remove_columns(key_names.REMOVE_COLUMNS_FROM_RETRIEVER)\
+        .rename_column(key_names.RETRIEVAL_CONTEXT, key_names.CONTEXT)
 
     # 'answers' 필드를 파싱하여 딕셔너리로 변환하는 함수
     def process_answers(example):
         # 'answers' 필드가 문자열로 저장된 경우 이를 딕셔너리로 변환
-        if isinstance(example[column_names.ANSWER], str):
-            example[column_names.ANSWER] = ast.literal_eval(example[column_names.ANSWER])
+        if isinstance(example[key_names.ANSWER], str):
+            example[key_names.ANSWER] = ast.literal_eval(example[key_names.ANSWER])
         return example
 
     # 'answers' 필드를 처리하여 파싱
-    train_dataset_dict[column_names.TRAIN] = train_dataset_dict[column_names.TRAIN]\
+    train_dataset_dict[key_names.TRAIN] = train_dataset_dict[key_names.TRAIN]\
     .map(process_answers)
 
 
@@ -82,7 +83,7 @@ def reader():
     # Argument 설정
     model_args = ModelArguments()
     data_args = DataTrainingArguments()
-    training_args = TrainingArguments(output_dir='outputs/models/train_dataset')
+    training_args = TrainingArguments(output_dir=outputs)
 
     # 학습 관련 설정
     training_args.do_train = True
