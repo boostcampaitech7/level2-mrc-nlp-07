@@ -159,13 +159,13 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 
 
 ## 프로젝트 아키텍쳐
-#### Reader  
+#### Reader
   <img src="docs/modules/reader.png" alt="Reader Module" width="600">
 
-#### Utils  
+#### Utils
   <img src="docs/modules/utils.png" alt="Utils Module" width="600">
 
-#### Retriever  
+#### Retriever
   <img src="docs/modules/embedding.png" alt="Retriever Module" width="400">
 
 ## 프로젝트 결과
@@ -198,6 +198,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 - **GitHub**: 코드 버전 관리 및 협업. GitHub Flow를 통해 기능 단위로 브랜치를 관리하고, 코드 리뷰를 진행.
 - **Notion**: 팀 회의록, 실험 결과 기록, 프로젝트 진행 상황 문서화에 사용.
 - **Slack & Zoom**: 팀원 간의 원활한 커뮤니케이션 및 화상 회의 도구.
+- **pre-commit**: 코드 품질 유지와 자동화된 검사를 위해 사용. 코드 스타일 검사, 포맷팅, 정적 분석 등을 Git 커밋 단계에서 실행하여 일관성을 유지.
 
 ## B. 실험 환경 및 하드웨어
 
@@ -217,12 +218,9 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 프로젝트의 디렉토리 구조는 다음과 같이 설계되었습니다.
 
 ```text
-├── notebook
-│   ├── Data_preprocessing.ipynb
-│   ├── EDA_with_LLM.ipynb
-│   ├── dataeda.ipynb
-│   ├── single_stage_ODQA.ipynb
-│   └── test.ipynb
+├── data_analysis
+│   ├── manual_data_analysis.ipynb
+│   └── outlier_handling_with_LLM.ipynb
 ├── src
 │   ├── config
 │   │   ├── key_names.py
@@ -232,6 +230,7 @@ Reader 클래스는 다양한 데이터 전처리 및 학습 모듈을 활용할
 │   ├── reader
 │   │   ├── add_nouns.py
 │   │   ├── aug_korquad.py
+│   │   ├── LLM_reader.ipynb
 │   │   ├── data_controller
 │   │   │   ├── data_handler.py
 │   │   │   ├── data_processor.py
