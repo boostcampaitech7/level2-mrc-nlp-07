@@ -25,7 +25,7 @@ ORIGINAL_CONTEXT = 'original_context'
 QUESTION = 'question'
 RETRIEVAL_CONTEXT = 'retrieval_context'
 UNNAMED = 'Unnamed: 0'
-REMOVE_COLUMNS_FROM_RETRIEVER = ['Unnamed: 0', 'original_context', 'correct', 'rmm_score', 'linear_score']
+REMOVE_COLUMNS_FROM_RETRIEVER = ['Unnamed: 0', 'original_context']
 
 # DataHandler에서 사용되는 상수
 DATA_PROCESSOR = 'DataProc'
