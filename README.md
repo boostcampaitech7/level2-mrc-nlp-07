@@ -34,12 +34,12 @@
     <th>서재덕</th>
   </tr>
   <tr>
-    <td><img src="./docs/image/README/꼬부기1.png" alt="꼬부기1" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기2.png" alt="꼬부기2" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기3.png" alt="꼬부기3" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기4.png" alt="꼬부기4" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기5.png" alt="꼬부기5" width="100" height="100"></td>
-    <td><img src="./docs/image/README/꼬부기6.png" alt="꼬부기6" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기1.png" alt="꼬부기1" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기2.png" alt="꼬부기2" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기3.png" alt="꼬부기3" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기4.png" alt="꼬부기4" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기5.png" alt="꼬부기5" width="100" height="100"></td>
+    <td style="text-align: center; vertical-align: middle;"><img src="./docs/image/README/꼬부기6.png" alt="꼬부기6" width="100" height="100"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/gsgh3016">@감찬</a></td>
@@ -56,6 +56,14 @@
     <td>귀염둥이 막내 서현</td>
     <td>야구를 볼 수 있는 채은</td>
     <td>오리는 꽥꽥 재덕</td>
+  </tr>
+   <tr>
+    <td>Project Manager, 통합 관리 모듈, 리더의 리더</td>
+    <td>EDA, 데이터 분화, 기타 실험, 데이터 전처리</td>
+    <td>Sparse 임베딩 구현, 기술 지원,</td>
+    <td>모니터링 툴, 테스트 코드, 모델 결합 및 실험</td>
+    <td>팀 리더, retriever 팀장, Dense 임베딩 구현, Data 정제</td>
+    <td>데이터 전/후처리, 모델 결합 및 실험</td>
   </tr>
 </table>
 
