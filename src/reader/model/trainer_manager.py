@@ -13,7 +13,6 @@ from transformers import TrainingArguments
 from src.reader.data_controller.data_processor import DataPostProcessor
 from src.reader.model.trainer_qa import QuestionAnsweringTrainer
 from src.utils.arguments import DataTrainingArguments
-# TODO 종속성 문제 존재, 추후 수정 필요
 
 
 class TrainerManager:
@@ -40,7 +39,6 @@ class TrainerManager:
         self.compute_metrics = compute_metrics
 
         self.training_args.max_answer_length = data_args.max_answer_length
-        # TODO trainig_args에 max_answer_length 동적 할당
 
     def create_trainer(
         self,

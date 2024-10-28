@@ -10,9 +10,6 @@ from transformers import EvalPrediction
 from src.reader.data_controller.postprocess_qa import postprocess_qa_predictions
 from src.utils.constants import key_names
 from src.utils.constants import reader_configuration
-# TODO: DataProcessor에 BatchEncoding 형식 적용
-# from transformers import BatchEncoding
-
 
 class DataProcessor(ABC):
     name = key_names.DATA_PROCESSOR
@@ -177,7 +174,6 @@ class DataPostProcessor(DataProcessor):
             references = [
                 {key_names.ID: ex[key_names.ID], key_names.ANSWERS: ex[answer_column_name]}
                 for ex in datasets[0]
-                # LOOK 후처리로 넘어오는 데이터셋 3총사 구조 파악 필요
             ]
             return EvalPrediction(
                 predictions=formatted_predictions, label_ids=references,
