@@ -67,11 +67,17 @@
   </tr>
 </table>
 
-[Wrap-Up Report](https://www.notion.so/gamchan/5c77dba89bda4d19a2fa833929c297dd?pvs=4)
 
 ## 프로젝트 수행 절차 및 방법
 
 ## 프로젝트 아키텍쳐
+* 소프트웨어 아키텍처
+  * Reader
+    ![reader.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/67fc6676-b4c1-4811-8c8b-22c3399556fa/d7dcfaad-6765-4ebb-9bee-650971755982/reader.png)
+  * Utils  
+    ![utils.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/67fc6676-b4c1-4811-8c8b-22c3399556fa/d2e1f210-61df-47ff-a9b5-57daf0a9bd64/utils.png)
+  * Retriever
+    ![embedding.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/67fc6676-b4c1-4811-8c8b-22c3399556fa/f4f19fc5-fbb7-4040-940a-4df74f327c8f/embedding.png)  
 
 
 ## 프로젝트 결과
@@ -85,8 +91,8 @@
 ## Getting Started
 
 ## Appendix
+[Wrap-Up Report](https://www.notion.so/gamchan/5c77dba89bda4d19a2fa833929c297dd?pvs=4)
 
-### 프로젝트 폴더 구조
 
 ### 협업방식
 
