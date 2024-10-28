@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+
 from reader.model.reader import Reader
 from transformers import HfArgumentParser
 from transformers import TrainingArguments
@@ -9,6 +11,8 @@ from datasets import concatenate_datasets, load_from_disk
 from src.retriever.retrieval.sparse_retrieval import SparseRetrieval
 from transformers import AutoTokenizer
 from src.config.path_config import *
+from datasets import load_dataset, DatasetDict
+from src.utils.constants import column_names
 
 def retriever():
     tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
@@ -47,10 +51,51 @@ def reader():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    # CSV 파일에서 데이터 로드
+    train_retriever_dataset = load_dataset('csv', data_files='data/train.csv')
+
+    # DatasetDict로 train과 validation을 정의
+    train_dataset_dict = DatasetDict({
+        column_names.TRAIN: train_retriever_dataset[column_names.TRAIN]  # 'train' 스플릿으로 지정
+    })
+
+    # 불필요한 컬럼 제거 및 'retrieval_context'를 'context'로 변경
+    train_dataset_dict[column_names.TRAIN] = train_dataset_dict[column_names.TRAIN]\
+        .remove_columns(column_names.REMOVE_COLUMNS_FROM_RETRIEVER)\
+        .rename_column(column_names.RETRIEVAL_CONTEXT, column_names.CONTEXT)
+
+    # 'answers' 필드를 파싱하여 딕셔너리로 변환하는 함수
+    def process_answers(example):
+        # 'answers' 필드가 문자열로 저장된 경우 이를 딕셔너리로 변환
+        if isinstance(example[column_names.ANSWER], str):
+            example[column_names.ANSWER] = ast.literal_eval(example[column_names.ANSWER])
+        return example
+
+    # 'answers' 필드를 처리하여 파싱
+    train_dataset_dict[column_names.TRAIN] = train_dataset_dict[column_names.TRAIN]\
+    .map(process_answers)
+
+
     # output_dir은 training_args에 설정된 값을 사용
     print('Output directory:', training_args.output_dir)
 
-    reader_model = Reader(model_args, data_args, training_args)
+    # Argument 설정
+    model_args = ModelArguments()
+    data_args = DataTrainingArguments()
+    training_args = TrainingArguments(output_dir='outputs/models/train_dataset')
+
+    # 학습 관련 설정
+    training_args.do_train = True
+    training_args.do_eval = False
+    training_args.do_predict = False
+
+    # 학습 하이퍼파라미터 설정
+    model_args.model_name_or_path = 'klue/bert-base'  # 학습에 사용할 모델
+    training_args.learning_rate = 5e-5  # 학습률
+    training_args.num_train_epochs = 1  # epoch 수
+    training_args.per_device_train_batch_size = 16  # 학습 배치 사이즈
+
+    reader_model = Reader(model_args, data_args, training_args, train_dataset_dict)
     reader_model.run()
 
 
