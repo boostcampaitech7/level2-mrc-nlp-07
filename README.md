@@ -2,7 +2,7 @@
 
 ## 📕프로젝트 개요
 
-- 부스트캠프 AI Tech `NLP` 트랙에서 개체된 level 2 대회
+- 부스트캠프 AI Tech `NLP` 트랙에서 개최된 level 2 대회
 - `Linking MRC and Retrieval: Open-domain Question Answering(ODQA)` Task.
   - ODQA: 지문이 따로 주어지지 않은 채로 방대한 World Knowledge에 기반하여 질의응답
   - 질문에 관련된 문서를 찾는 `retriever`와 문서를 읽고 적절한 답변을 찾거나 만드는 `reader`의 `two-stage`로 구성.
